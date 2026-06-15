@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>現場写真台帳 — 工務店向け（第2段階デモ）</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap');
+  :root{
+    --bg:#eef1f4; --panel:#fff; --ink:#1f2933; --muted:#6b7785;
+    --line:#d3dae2; --line2:#e6ebf0;
+    --accent:#1c6ea4; --accent-d:#155680;
+    --ok:#2e9e6b; --lock:#7a52c4; --bad:#d0454b;
+    --shadow:0 1px 3px rgba(20,40,60,.08),0 4px 16px rgba(20,40,60,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'BIZ UDPGothic',sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.6}
+  button{font-family:inherit;cursor:pointer}
+  header{display:flex;align-items:center;gap:14px;padding:12px 20px;background:var(--panel);border-bottom:1px solid var(--line);box-shadow:var(--shadow);position:sticky;top:0;z-index:30}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+  .brand .ico{width:30px;height:30px;border-radius:7px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px}
+  .brand small{display:block;font-size:10px;color:var(--muted);font-weight:400}
+  /* オリジナル線画アイコン（青基調・統一感） */
+  .tic{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-3px;margin-right:6px}
+  .bic{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+  .dic{width:34px;height:34px;fill:none;stroke:var(--accent);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  .sic{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-2px;margin-right:5px}
+  header .sp{flex:1}
+  .tabs{display:flex;gap:4px}
+  .tab{border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:8px 8px 0 0;padding:9px 16px;font-size:13px;font-weight:700;border-bottom:none}
+  .tab.on{color:var(--accent);background:#f0f6fb;box-shadow:inset 0 -3px 0 var(--accent)}
+  .btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:7px;transition:.12s}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{background:var(--accent-d);color:#fff}
+  .btn.sm{padding:6px 11px;font-size:12px}
+  .btn.danger{color:var(--bad)} .btn.danger:hover{border-color:var(--bad);color:var(--bad)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+
+  .page{display:none}.page.on{display:block}
+  .layout{display:grid;grid-template-columns:230px 1fr 340px;height:calc(100vh - 57px)}
+  .col{overflow-y:auto;padding:16px}
+  .col.left{background:#f6f8fa;border-right:1px solid var(--line)}
+  .col.right{background:var(--panel);border-left:1px solid var(--line)}
+  .lbl{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;margin-bottom:10px}
+
+  .trow{display:flex;align-items:center;gap:7px;padding:8px 9px;border-radius:7px;cursor:pointer;font-size:13px}
+  .trow:hover{background:#e7edf2}
+  .trow.on{background:var(--accent);color:#fff;font-weight:700}
+  .trow .cnt{margin-left:auto;font-size:11px;opacity:.7;font-variant-numeric:tabular-nums}
+  .trow.big{font-weight:700}
+  .tchild{padding-left:24px}
+  .tchild .trow{font-size:12.5px;color:var(--muted);padding:6px 9px}
+  .tchild .trow.on{color:#fff}
+
+  .drop{border:2px dashed var(--line);border-radius:12px;padding:20px;text-align:center;cursor:pointer;background:var(--panel);transition:.12s;margin-bottom:16px}
+  .drop:hover,.drop.drag{border-color:var(--accent);background:#f0f6fb}
+  .drop .ic{font-size:26px}.drop p{font-size:12.5px;color:var(--muted);margin-top:3px}.drop b{color:var(--accent)}
+  .gridhead{display:flex;align-items:center;margin-bottom:12px;gap:10px}
+  .gridhead h2{font-size:15px}.gridhead .meta{font-size:12px;color:var(--muted)}
+  .search{margin-left:auto;display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+  .search input{border:none;outline:none;font-family:inherit;font-size:12.5px;width:130px;background:transparent}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:13px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;transition:.12s;box-shadow:var(--shadow);position:relative}
+  .card:hover{transform:translateY(-2px);border-color:var(--accent)}
+  .card.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+  .card .ph{aspect-ratio:4/3;background:#0d1418;width:100%;object-fit:cover;display:block}
+  .card .cap{padding:8px 9px}.card .cap .t{font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .cap .s{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .tags{position:absolute;top:7px;left:7px;display:flex;gap:4px}
+  .tag{font-size:9.5px;font-weight:700;padding:3px 6px;border-radius:5px;color:#fff}
+  .tag.lock{background:rgba(122,82,196,.9)}.tag.draft{background:rgba(107,119,133,.85)}
+  .tag.note{background:rgba(28,110,164,.9)}
+  .card.excluded{opacity:.45}.card.excluded .ph{filter:grayscale(.6)}
+  .pick{position:absolute;top:7px;right:7px;background:rgba(255,255,255,.92);border-radius:5px;padding:2px 4px;display:flex;align-items:center;cursor:pointer;z-index:2}
+  .pick input{cursor:pointer;width:15px;height:15px;accent-color:var(--accent)}
+  .anno-bar{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:center}
+  .anno-bar .tl{font-size:11px;color:var(--muted);font-weight:700;margin-right:2px}
+  .anno-btn{border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+  .anno-btn.on{border-color:var(--accent);background:#eef4f9;color:var(--accent-d)}
+  .anno-stage{position:relative;cursor:crosshair;touch-action:none}
+  .anno-stage svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+
+  /* v8追加CSS */
+  .card{position:relative}
+  .card .del-btn{position:absolute;bottom:6px;right:6px;background:rgba(220,50,50,.85);color:#fff;border:none;border-radius:5px;padding:2px 7px;font-size:11px;cursor:pointer;display:none;z-index:3}
+  .card:hover .del-btn{display:block}
+  .card.confirmed .del-btn{display:none!important}
+  .card .sel-cb{position:absolute;top:7px;left:7px;z-index:3}
+  .sel-cb input{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
+  .batch-bar{background:var(--accent);color:#fff;padding:8px 14px;border-radius:8px;display:flex;gap:10px;align-items:center;font-size:13px;font-weight:700;margin-bottom:10px;flex-wrap:wrap}
+  .batch-bar button{background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-weight:700}
+  .fullscreen-modal{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:center}
+  .fullscreen-modal.show{display:flex}
+  .fullscreen-modal img{max-width:90vw;max-height:80vh;object-fit:contain;border-radius:4px}
+  .fullscreen-modal .close-fs{position:absolute;top:16px;right:20px;color:#fff;font-size:28px;cursor:pointer;background:none;border:none;z-index:10000}
+  .fullscreen-modal .fs-info{color:rgba(255,255,255,.7);font-size:12px;margin-top:10px;text-align:center}
+  .anno-full{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:9998;display:none;flex-direction:column}
+  .anno-full.show{display:flex}
+  .anno-full .anno-canvas-wrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;position:relative}
+  .anno-full .anno-canvas-wrap img{max-width:95vw;max-height:calc(100vh - 70px);object-fit:contain}
+  .anno-full .anno-toolbar{height:56px;background:#222;display:flex;align-items:center;gap:8px;padding:0 14px;flex-shrink:0;flex-wrap:wrap}
+  .anno-full .anno-toolbar button,.anno-full .anno-toolbar label{color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;font-weight:700}
+  .anno-full .anno-toolbar button.on{background:var(--accent);border-color:var(--accent)}
+  .anno-full .anno-toolbar select,.anno-full .anno-toolbar input[type=color]{height:28px;border-radius:5px;border:1px solid rgba(255,255,255,.3);background:#333;color:#fff;font-size:12px}
+  .anno-full svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .anno-full svg.active{pointer-events:auto;cursor:crosshair}
+  .grp-toggle{cursor:pointer;user-select:none}
+  .grp-toggle::before{content:'▼ ';font-size:11px}
+  .grp-toggle.collapsed::before{content:'► '}
+  .grp-body.collapsed{display:none}
+  .size-toggle{display:flex;gap:4px;align-items:center}
+  .size-toggle button{width:28px;height:28px;border:1px solid var(--line);border-radius:5px;background:var(--panel);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+  .size-toggle button.on{border-color:var(--accent);background:#eef4f9;color:var(--accent-d)}
+  .grid.sz-sm .card{width:100px}.grid.sz-sm .ph{height:70px}
+  .grid.sz-lg .card{width:220px}.grid.sz-lg .ph{height:160px}
+  .warn-badge{background:var(--bad);color:#fff;font-size:10px;padding:1px 6px;border-radius:8px;margin-left:6px}
+  .exif-info{font-size:11px;color:var(--muted);margin-top:4px}
+  .count-badge{font-size:11px;color:var(--accent);font-weight:700;margin-left:4px}
+  .rotate-btn{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer;margin-left:6px}
+
+  .empty{text-align:center;color:var(--muted);padding:50px 16px;font-size:13px}
+
+  .viewer{position:relative;border-radius:10px;overflow:hidden;background:#0d1418;margin-bottom:12px}
+  .viewer img{width:100%;display:block}
+  .field{margin-bottom:11px}.field label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px}
+  .field .req{color:var(--bad)}
+  .field input,.field select{width:100%;border:1px solid var(--line);border-radius:7px;padding:9px 10px;font-family:inherit;font-size:13px;background:var(--panel);color:var(--ink)}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--accent)}
+  .field input:disabled,.field select:disabled{background:#f0f3f6;opacity:1}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .locked-card{border:1px solid var(--lock);background:#f7f3fd;border-radius:9px;padding:11px;margin-bottom:12px}
+  .locked-card .h{display:flex;align-items:center;gap:6px;font-weight:700;color:var(--lock);font-size:12.5px;margin-bottom:7px}
+  .kv{display:flex;font-size:12.5px;padding:2px 0}.kv .k{color:var(--muted);width:84px;flex:none}.kv .v{font-weight:700}
+  .hash{font-size:10px;color:var(--muted);word-break:break-all;margin-top:7px;font-family:ui-monospace,monospace}
+  .verify{display:flex;align-items:center;gap:6px;font-weight:700;font-size:12px;margin-top:7px}
+  .verify.ok{color:var(--ok)}.verify.bad{color:var(--bad)}
+
+  /* テンプレ作成画面 */
+  .tpl-wrap{max-width:920px;margin:0 auto;padding:24px}
+  .tpl-head{display:flex;align-items:center;margin-bottom:8px}
+  .tpl-head h2{font-size:18px}
+  .tpl-head .sp{flex:1}
+  .tpl-desc{color:var(--muted);font-size:13px;margin-bottom:20px}
+  .wt-card{background:var(--panel);border:1px solid var(--line);border-radius:11px;margin-bottom:12px;box-shadow:var(--shadow);overflow:hidden}
+  .wt-bar{display:flex;align-items:center;gap:10px;padding:13px 16px;background:#f6f8fa;border-bottom:1px solid var(--line2)}
+  .wt-bar .grip{color:var(--muted)}
+  .wt-bar input.wtname{font-weight:700;font-size:14px;border:1px solid transparent;background:transparent;border-radius:6px;padding:5px 8px;font-family:inherit;flex:1}
+  .wt-bar input.wtname:focus{outline:none;border-color:var(--accent);background:#fff}
+  .kinds{padding:12px 16px;display:flex;flex-wrap:wrap;gap:8px}
+  .kind-chip{display:inline-flex;align-items:center;gap:6px;background:#eef4f9;border:1px solid #cfe0ec;color:var(--accent-d);border-radius:20px;padding:5px 10px;font-size:12.5px;font-weight:700}
+  .kind-chip .del{cursor:pointer;opacity:.5;font-weight:700}.kind-chip .del:hover{opacity:1;color:var(--bad)}
+  .kind-add{display:inline-flex;align-items:center;gap:4px}
+  .kind-add input{border:1px dashed var(--line);border-radius:20px;padding:5px 12px;font-family:inherit;font-size:12.5px;width:120px}
+  .kind-add input:focus{outline:none;border-color:var(--accent)}
+  .bulk{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:18px;margin-top:18px}
+  .bulk h3{font-size:14px;margin-bottom:6px}
+  .bulk p{font-size:12px;color:var(--muted);margin-bottom:10px}
+  .bulk textarea{width:100%;height:120px;border:1px solid var(--line);border-radius:8px;padding:10px;font-family:ui-monospace,monospace;font-size:12.5px;resize:vertical}
+  .bulk textarea:focus{outline:none;border-color:var(--accent)}
+
+  #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(70px);background:#1f2933;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:700;z-index:90;opacity:0;transition:.28s;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+  #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  .mbg{position:fixed;inset:0;background:rgba(15,25,35,.7);z-index:80;display:none;align-items:center;justify-content:center;padding:24px}
+  .mbg.show{display:flex}
+  .modal{background:var(--panel);border-radius:14px;max-width:800px;width:100%;max-height:88vh;display:flex;flex-direction:column}
+  .modal .mh{padding:15px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;font-weight:700;font-size:15px}
+  .modal .mh .x{margin-left:auto;cursor:pointer;color:var(--muted);font-size:22px}
+  .modal .mb{padding:20px;overflow:auto}
+  .lp{display:flex;gap:14px;padding:12px;border:1px solid var(--line2);border-radius:9px;margin-bottom:10px}
+  .lp img{width:150px;aspect-ratio:4/3;object-fit:cover;border-radius:6px;flex:none}
+  .lp .li{font-size:12.5px;line-height:1.8}.lp .li b{color:var(--accent)}
+  .grp-h{font-weight:700;color:var(--accent);font-size:14px;margin:14px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--accent)}
+  .hint{font-size:11px;color:var(--muted);line-height:1.6;margin-top:10px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="ico"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3.2"/><path d="M3 9h4l1.2-2"/></svg></div><div>現場写真台帳<small>工務店向け · 第2段階デモ v8（全機能版）</small></div></div>
+  <div class="tabs">
+    <button class="tab on" id="tabShoot" onclick="showPage('shoot')"><svg class="tic" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3.3"/><path d="M8 6l1.3-2h5.4L16 6"/></svg>撮影・台帳</button>
+    <button class="tab" id="tabProj" onclick="showPage('proj')"><svg class="tic" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>案件情報</button>
+    <button class="tab" id="tabTpl" onclick="showPage('tpl')"><svg class="tic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3.2M12 18.3v3.2M2.5 12h3.2M18.3 12h3.2M5.2 5.2l2.3 2.3M16.5 16.5l2.3 2.3M18.8 5.2l-2.3 2.3M7.5 16.5l-2.3 2.3"/></svg>黒板テンプレート作成</button>
+  </div>
+  <div class="sp"></div>
+  <button class="btn sm" id="zipBtn"><svg class="bic" viewBox="0 0 24 24"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg> 一括書き出し</button>
+  <button class="btn primary sm" id="ledgerBtn"><svg class="bic" viewBox="0 0 24 24" stroke="#fff"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg> 台帳作成</button>
+</header>
+
+<!-- ===== 撮影・台帳ページ ===== -->
+<div class="page on" id="page-shoot">
+  <div class="layout">
+    <div class="col left">
+      <div class="lbl">工程（工種で大分け）</div>
+      <div id="tree"></div>
+      <p class="hint">テンプレートで定義した工種・種別で自動振り分け。種別・場所で小分けし最新順で表示します。</p>
+    </div>
+    <div class="col">
+      <div class="drop" id="drop"><div class="ic"><svg class="dic" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3.5"/><path d="M8 6l1.3-2h5.4L16 6"/></svg></div>
+        <p id="dropTitle"><b>写真を追加</b>（クリック / ドラッグ&ドロップ）</p>
+        <p id="dropSub">JPEG・PNG / 複数可 ・ 向きは自動補正</p></div>
+      <input type="file" id="file" accept="image/*" multiple hidden>
+      <input type="file" id="camera" accept="image/*" capture="environment" hidden>
+      <div class="gridhead"><h2 id="gridTitle">すべての写真</h2><span class="meta" id="gridMeta"></span>
+        <span id="missingWarn"></span>
+        <div class="size-toggle" style="margin-left:auto">
+          <button data-sz="sm" onclick="setThumbSize('sm')" title="小">S</button>
+          <button data-sz="md" onclick="setThumbSize('md')" class="on" title="中">M</button>
+          <button data-sz="lg" onclick="setThumbSize('lg')" title="大">L</button>
+        </div>
+        <div class="search"><svg class="sic" viewBox="0 0 24 24" style="stroke:var(--muted)"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg><input id="search" placeholder="黒板を検索"></div></div>
+      <div class="grid" id="grid"></div>
+      <div class="empty" id="empty">写真がありません。上から追加してください。</div>
+    </div>
+    <div class="col right" id="detail"><div class="empty">写真を選ぶと電子小黒板が表示されます。</div></div>
+  </div>
+</div>
+
+<!-- ===== 案件情報ページ ===== -->
+<div class="page" id="page-proj">
+  <div class="tpl-wrap">
+    <div class="tpl-head"><h2>案件情報</h2><div class="sp"></div></div>
+    <p class="tpl-desc">工事の基本情報を入力します。ここで入力した内容が、写真台帳の表紙・工事概要に自動で反映されます。案件ごとに一度入力すれば、毎回の入力は不要です。</p>
+    <div style="background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:20px;box-shadow:var(--shadow)">
+      <div class="field"><label>工事名 <span class="req">*</span></label><input id="pjName" placeholder="例：○○様邸 新築工事"></div>
+      <div class="field"><label>工事場所</label><input id="pjSite" placeholder="例：神奈川県横浜市○○区○○町1-2-3"></div>
+      <div class="two">
+        <div class="field"><label>工期（自）</label><input id="pjFrom" type="date"></div>
+        <div class="field"><label>工期（至）</label><input id="pjTo" type="date"></div>
+      </div>
+      <div class="two">
+        <div class="field"><label>提出先（元請）</label><input id="pjClient" placeholder="例：株式会社○○ホーム"></div>
+        <div class="field"><label>施工者（自社）</label><input id="pjBuilder" placeholder="例：□□工務店"></div>
+      </div>
+      <div class="field"><label>現場代理人</label><input id="pjRep" placeholder="例：□□ □□"></div>
+      <div class="field"><label>工事概要</label><input id="pjOverview" placeholder="例：木造2階建て住宅の新築工事"></div>
+      <button class="btn primary" onclick="saveProj()" style="margin-top:6px">この内容を保存</button>
+      <span id="pjSaved" style="font-size:12px;color:var(--ok);margin-left:10px;font-weight:700"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== テンプレート作成ページ ===== -->
+<div class="page" id="page-tpl">
+  <div class="tpl-wrap">
+    <div class="tpl-head">
+      <h2>黒板テンプレート作成</h2><div class="sp"></div>
+      <button class="btn sm" onclick="loadStandard()">📥 標準工程セットを読み込む</button>
+      <button class="btn primary sm" onclick="addWt()">＋ 工種を追加</button>
+    </div>
+    <p class="tpl-desc">事務所PCで、工種（大分け）とその中の種別を組み立てます。新築木造の標準セットを叩き台に、自社用へ編集できます。撮影時はここで作った工種・種別から選びます。</p>
+    <div id="wtList"></div>
+    <div class="bulk">
+      <h3>一括作成（まとめて入力）</h3>
+      <p>1行に1工種。「工種名: 種別1, 種別2, 種別3」の形式で貼り付け → まとめて追加。配筋など種別が多い工程も一気に作れます。</p>
+      <textarea id="bulkText" placeholder="基礎工事: 配筋, アンカーボルト, 配筋検査, 打設, 天端レベル
+構造躯体・金物: 土台敷き, 上棟, 柱・梁, 筋交い, 接合金物"></textarea>
+      <button class="btn primary sm" style="margin-top:10px" onclick="bulkAdd()">この内容で一括追加</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div class="mbg" id="ledgerModal"><div class="modal">
+  <div class="mh">写真台帳プレビュー<span class="x" onclick="closeLedger()">×</span></div>
+  <div class="mb" id="ledgerBody"></div></div></div>
+
+<script>
+const STANDARD=[
+  {wt:'着工前・仮設',kinds:['敷地全景','地縄張り','仮設・養生']},
+  {wt:'地盤・地業',kinds:['地盤改良','根切り・床付け','砕石転圧','防湿シート']},
+  {wt:'基礎工事',kinds:['配筋','アンカーボルト','配筋検査','打設','天端レベル']},
+  {wt:'構造躯体・金物',kinds:['土台敷き','上棟','柱・梁','筋交い','接合金物','構造面材']},
+  {wt:'屋根・防水',kinds:['野地板','ルーフィング','屋根葺き','雨仕舞い']},
+  {wt:'外装・断熱',kinds:['サッシ','透湿防水シート','断熱材','外壁下地']},
+  {wt:'設備配管・配線',kinds:['給排水','給湯','電気配線','換気ダクト']},
+  {wt:'内装仕上',kinds:['石膏ボード','床','クロス','建具・造作']},
+  {wt:'完成・引渡し',kinds:['完成全景','社内検査','施主検査']},
+];
+let templates=JSON.parse(JSON.stringify(STANDARD)); // 編集可能なテンプレ
+let photos=[],selId=null,filter=null,q='';
+let project={name:'○○様邸 新築工事',site:'',from:'',to:'',client:'',builder:'',rep:'',overview:'',created:''};
+
+const $=s=>document.querySelector(s);
+const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2400);};
+async function sha256(buf){const h=await crypto.subtle.digest('SHA-256',buf);return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('');}
+
+function showPage(p){
+  ['shoot','proj','tpl'].forEach(x=>{
+    $('#page-'+x).classList.toggle('on',p===x);
+    $('#tab'+x.charAt(0).toUpperCase()+x.slice(1)).classList.toggle('on',p===x);
+  });
+  if(p==='tpl')renderTpl(); else if(p==='proj')fillProj(); else renderAll();
+}
+// 案件情報
+function fillProj(){
+  $('#pjName').value=project.name||'';$('#pjSite').value=project.site||'';
+  $('#pjFrom').value=project.from||'';$('#pjTo').value=project.to||'';
+  $('#pjClient').value=project.client||'';$('#pjBuilder').value=project.builder||'';
+  $('#pjRep').value=project.rep||'';$('#pjOverview').value=project.overview||'';
+}
+function saveProj(){
+  project.name=$('#pjName').value.trim();project.site=$('#pjSite').value.trim();
+  project.from=$('#pjFrom').value;project.to=$('#pjTo').value;
+  project.client=$('#pjClient').value.trim();project.builder=$('#pjBuilder').value.trim();
+  project.rep=$('#pjRep').value.trim();project.overview=$('#pjOverview').value.trim();
+  $('#projName').textContent=project.name||'（工事名未設定）';
+  const s=$('#pjSaved');s.textContent='✓ 保存しました';setTimeout(()=>s.textContent='',2500);
+  toast('案件情報を保存しました');
+}
+function period(){return (project.from||'—')+' 〜 '+(project.to||'—');}
+
+// ===== テンプレ作成画面 =====
+function renderTpl(){
+  const box=$('#wtList');box.innerHTML='';
+  if(!templates.length){box.innerHTML='<div class="empty">工種がありません。「工種を追加」か「標準工程セット」から始めてください。</div>';}
+  templates.forEach((t,wi)=>{
+    const card=document.createElement('div');card.className='wt-card';
+    const kinds=t.kinds.map((k,ki)=>`<span class="kind-chip">${esc(k)}<span class="del" onclick="delKind(${wi},${ki})">×</span></span>`).join('');
+    card.innerHTML=`
+      <div class="wt-bar"><span class="grip">≡</span>
+        <input class="wtname" value="${esc(t.wt)}" onchange="renWt(${wi},this.value)">
+        <button class="btn danger sm" onclick="delWt(${wi})">工種を削除</button></div>
+      <div class="kinds">${kinds}
+        <span class="kind-add"><input placeholder="種別を追加" onkeydown="if(event.key==='Enter'){addKind(${wi},this.value);this.value=''}"></span>
+      </div>`;
+    box.appendChild(card);
+  });
+}
+function addWt(){templates.push({wt:'新しい工種',kinds:[]});renderTpl();toast('工種を追加しました');}
+function delWt(i){templates.splice(i,1);renderTpl();}
+function renWt(i,v){templates[i].wt=v.trim()||'(無名)';}
+function addKind(wi,v){v=v.trim();if(!v)return;templates[wi].kinds.push(v);renderTpl();}
+function delKind(wi,ki){templates[wi].kinds.splice(ki,1);renderTpl();}
+function loadStandard(){templates=JSON.parse(JSON.stringify(STANDARD));renderTpl();toast('標準工程セットを読み込みました');}
+function bulkAdd(){
+  const lines=$('#bulkText').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  let n=0;
+  lines.forEach(line=>{
+    const m=line.split(':');
+    if(m.length<2)return;
+    const wt=m[0].trim();
+    const kinds=m.slice(1).join(':').split(/[,、]/).map(s=>s.trim()).filter(Boolean);
+    const ex=templates.find(t=>t.wt===wt);
+    if(ex){kinds.forEach(k=>{if(!ex.kinds.includes(k))ex.kinds.push(k);});}
+    else templates.push({wt,kinds});
+    n++;
+  });
+  $('#bulkText').value='';renderTpl();
+  toast(n?`${n}工種を一括追加しました`:'形式を確認してください（工種名: 種別1, 種別2）');
+}
+
+// ===== 撮影ページ（第1段階と同等）=====
+function loadOriented(file){return new Promise(res=>{const r=new FileReader();r.onload=()=>{const buf=r.result;const o=getOri(new DataView(buf));const img=new Image();img.onload=()=>{let w=img.width,h=img.height;const c=document.createElement('canvas');const x=c.getContext('2d');if(o>=5){c.width=h;c.height=w;}else{c.width=w;c.height=h;}switch(o){case 2:x.transform(-1,0,0,1,w,0);break;case 3:x.transform(-1,0,0,-1,w,h);break;case 4:x.transform(1,0,0,-1,0,h);break;case 5:x.transform(0,1,1,0,0,0);break;case 6:x.transform(0,1,-1,0,h,0);break;case 7:x.transform(0,-1,-1,0,h,w);break;case 8:x.transform(0,-1,1,0,0,w);break;}x.drawImage(img,0,0);res(c.toDataURL('image/jpeg',.85));};img.src=URL.createObjectURL(new Blob([buf]));};r.readAsArrayBuffer(file);});}
+function getOri(v){if(v.getUint16(0,false)!==0xFFD8)return 1;let o=2;const l=v.byteLength;while(o<l){const m=v.getUint16(o,false);o+=2;if(m===0xFFE1){if(v.getUint32(o+=2,false)!==0x45786966)return 1;const le=v.getUint16(o+=6,false)===0x4949;o+=v.getUint32(o+4,le);const t=v.getUint16(o,le);o+=2;for(let i=0;i<t;i++)if(v.getUint16(o+i*12,le)===0x0112)return v.getUint16(o+i*12+8,le);}else if((m&0xFF00)!==0xFF00)break;else o+=v.getUint16(o,false);}return 1;}
+
+// 端末判定：スマホ・タブレットはカメラ撮影、PCはアップロード
+const isMobile = /Mobi|Android|iPhone|iPad|iPod|Tablet/i.test(navigator.userAgent) || (('ontouchstart' in window) && window.innerWidth < 1024);
+const drop=$('#drop');
+$('#file').addEventListener('change',e=>add(e.target.files));
+$('#camera').addEventListener('change',e=>add(e.target.files));
+if(isMobile){
+  // モバイル：カメラ起動UI
+  $('#dropTitle').innerHTML='<b>カメラで撮影</b>';
+  $('#dropSub').textContent='タップして撮影 ・ 向きは自動補正';
+  drop.addEventListener('click',()=>$('#camera').click());
+}else{
+  // PC：アップロードUI
+  $('#dropTitle').innerHTML='<b>写真をアップロード</b>（クリック / ドラッグ&ドロップ）';
+  $('#dropSub').textContent='JPEG・PNG / 複数可 ・ 向きは自動補正';
+  drop.addEventListener('click',()=>$('#file').click());
+  ['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag');}));
+  ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag');}));
+  drop.addEventListener('drop',e=>{if(e.dataTransfer.files.length)add(e.dataTransfer.files);});
+}
+async function add(files){
+  if(!templates.length){toast('先にテンプレートで工種を作成してください');showPage('tpl');return;}
+  let n=0;
+  for(const f of files){if(!f.type.startsWith('image/'))continue;
+    const src=await loadOriented(f);const buf=await f.arrayBuffer();const bh=await sha256(buf);const exif=await readExifInfo(f);
+    photos.push({id:'P'+Date.now()+Math.random().toString(36).slice(2,6),name:f.name,src,blobHash:bh,
+      ts:Date.now()+n,wt:templates[0].wt,kind:templates[0].kinds[0]||'',title:'',place:'',memo:'',locked:false,hash:null,
+      inLedger:true,annots:[],order:Date.now()+n,exifDate:exif.dateTime||''});n++;}
+  renderAll();if(n)toast(n+'枚を追加（向き自動補正済み）');
+}
+function renderTree(){
+  const t=$('#tree');t.innerHTML='';
+  const all=document.createElement('div');all.className='trow big'+(filter===null?' on':'');
+  all.innerHTML=`📁 すべての写真<span class="cnt">${photos.length}</span>`;all.onclick=()=>{filter=null;renderAll();};t.appendChild(all);
+  templates.forEach(tp=>{
+    const inWt=photos.filter(p=>p.wt===tp.wt);
+    const row=document.createElement('div');row.className='trow big'+(filter&&filter.wt===tp.wt&&!filter.kind?' on':'');
+    row.innerHTML=`▸ ${esc(tp.wt)}<span class="cnt">${inWt.length}</span>`;row.onclick=()=>{filter={wt:tp.wt};renderAll();};t.appendChild(row);
+    if(filter&&filter.wt===tp.wt){const kc=document.createElement('div');kc.className='tchild';
+      tp.kinds.forEach(k=>{const c=photos.filter(p=>p.wt===tp.wt&&p.kind===k).length;const r=document.createElement('div');
+        r.className='trow'+(filter.kind===k?' on':'');r.innerHTML=`${esc(k)}<span class="cnt">${c}</span>`;
+        r.onclick=e=>{e.stopPropagation();filter={wt:tp.wt,kind:k};renderAll();};kc.appendChild(r);});t.appendChild(kc);}
+  });
+}
+function visible(){let l=photos.slice();if(filter)l=l.filter(p=>p.wt===filter.wt&&(!filter.kind||p.kind===filter.kind));
+  if(q){const k=q.toLowerCase();l=l.filter(p=>(p.wt+p.kind+p.title+p.place+p.memo).toLowerCase().includes(k));}return l.sort((a,b)=>b.ts-a.ts);}
+function renderGrid(){const g=$('#grid');g.innerHTML='';const l=visible();$('#empty').style.display=l.length?'none':'block';
+  $('#gridTitle').textContent=filter?(filter.wt+(filter.kind?' › '+filter.kind:'')):'すべての写真';
+  $('#gridMeta').textContent=`${l.length}枚`+(q?`（「${q}」で検索）`:'');
+  l.forEach(p=>{const c=document.createElement('div');c.className='card'+(p.id===selId?' on':'')+(p.inLedger?'':' excluded')+(p.locked?' confirmed':'');
+    c.innerHTML=`<div class="tags">${p.locked?'<span class="tag lock">確定済</span>':'<span class="tag draft">下書き</span>'}${p.annots&&p.annots.length?'<span class="tag note">注釈</span>':''}</div>
+      <label class="sel-cb"><input type="checkbox" ${multiSel.has(p.id)?'checked':''}></label>
+      <label class="pick" title="台帳に載せる"><input type="checkbox" ${p.inLedger?'checked':''}></label>
+      <img class="ph" src="${p.src}" ondblclick="event.stopPropagation();openFsModal('${p.src.replace("'","\\'")}','${esc(p.title||p.kind)}')">${!p.locked?`<button class="del-btn" onclick="event.stopPropagation();deletePhoto('${p.id}')">削除</button>`:''}
+      <div class="cap"><div class="t">${esc(p.title||p.kind)}</div>
+      <div class="s">${esc(p.wt)} · ${esc(p.kind)}${p.place?' · '+esc(p.place):''}</div>
+      ${p.exifDate?'<div class="exif-info">'+esc(p.exifDate)+'</div>':''}</div>`;
+    c.querySelector('.sel-cb input').onclick=(e)=>{e.stopPropagation();toggleMultiSel(p.id,e.target.checked);};
+    c.querySelector('.pick input').onclick=(e)=>{e.stopPropagation();p.inLedger=e.target.checked;renderGrid();};
+    c.onclick=()=>{selId=p.id;renderAll();};g.appendChild(c);});
+  renderBatchBar();}
+$('#search').addEventListener('input',e=>{q=e.target.value.trim();renderGrid();});
+function renderDetail(){const d=$('#detail');const p=photos.find(x=>x.id===selId);
+  if(!p){d.innerHTML='<div class="empty">写真を選ぶと電子小黒板が表示されます。</div>';return;}
+  const tp=templates.find(t=>t.wt===p.wt)||templates[0];
+  const annoSvg=(p.annots||[]).map(a=>annoToSvg(a)).join('');
+  d.innerHTML=`<div class="lbl">電子小黒板</div>
+    <div class="anno-bar"><span class="tl">注釈</span>
+      <span class="anno-btn" data-tool="arrow"><svg class="bic" viewBox="0 0 24 24" style="stroke:var(--accent)"><path d="M5 19L19 5M19 5h-7M19 5v7"/></svg>矢印</span>
+      <span class="anno-btn" data-tool="circle"><svg class="bic" viewBox="0 0 24 24" style="stroke:var(--accent)"><circle cx="12" cy="12" r="8"/></svg>丸</span>
+      <span class="anno-btn" data-tool="text"><svg class="bic" viewBox="0 0 24 24" style="stroke:var(--accent)"><path d="M5 7h14M12 7v11"/></svg>文字</span>
+      <span class="anno-btn" id="annoUndo">取消</span>
+      <span class="anno-btn" id="annoClear">全消去</span></div>
+    <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+      <button class="anno-btn" onclick="openFsModal('${p.src}','${esc(p.title||p.kind)}')">拡大表示</button>
+      ${!p.locked?'<button class="anno-btn" onclick="openAnnoFull(\''+p.id+'\')">注釈（全画面）</button>':''}
+      ${!p.locked?'<button class="rotate-btn" onclick="rotatePhoto(\''+p.id+'\')">90°回転</button>':''}
+      ${!p.locked&&multiSel.size?'<button class="anno-btn" onclick="copyBlackboard(\''+p.id+'\')">黒板を選択写真にコピー</button>':''}
+    </div>
+    <div class="viewer anno-stage" id="annoStage"><img src="${p.src}" id="annoImg">
+      <svg id="annoSvg" viewBox="0 0 100 75" preserveAspectRatio="none">${annoSvg}</svg></div>
+    ${p.locked?lockedView(p):editView(p,tp)}`;
+  setupAnno(p);
+  if(!p.locked){$('#fWt').onchange=e=>{p.wt=e.target.value;p.kind=(templates.find(t=>t.wt===p.wt).kinds[0])||'';renderAll();};
+    $('#fKind').onchange=e=>p.kind=e.target.value;$('#fTitle').oninput=e=>p.title=e.target.value;
+    $('#fPlace').oninput=e=>p.place=e.target.value;$('#fMemo').oninput=e=>p.memo=e.target.value;$('#lockBtn').onclick=()=>lock(p);}
+  else $('#verBtn').onclick=()=>verify(p);}
+
+let annoTool=null;
+function annoToSvg(a){
+  const red=a.color||'#e53935';const lw=a.width||2;
+  if(a.t==='arrow'){const ang=Math.atan2(a.y2-a.y1,a.x2-a.x1);const ah=4;
+    const x3=a.x2-ah*Math.cos(ang-0.5),y3=a.y2-ah*Math.sin(ang-0.5);
+    const x4=a.x2-ah*Math.cos(ang+0.5),y4=a.y2-ah*Math.sin(ang+0.5);
+    return `<line x1="${a.x1}" y1="${a.y1}" x2="${a.x2}" y2="${a.y2}" stroke="${red}" stroke-width="${lw}"/><polyline points="${x3},${y3} ${a.x2},${a.y2} ${x4},${y4}" fill="none" stroke="${red}" stroke-width="${lw}"/>`;}
+  if(a.t==='circle'){const rx=Math.abs(a.x2-a.x1)/2,ry=Math.abs(a.y2-a.y1)/2;
+    return `<ellipse cx="${(a.x1+a.x2)/2}" cy="${(a.y1+a.y2)/2}" rx="${rx}" ry="${ry}" fill="none" stroke="${red}" stroke-width="${lw}"/>`;}
+  if(a.t==='text')return `<text x="${a.x1}" y="${a.y1}" fill="${red}" font-size="5" font-weight="bold">${esc(a.text||'')}</text>`;
+  return '';}
+function setupAnno(p){
+  const bar=document.querySelectorAll('.anno-btn[data-tool]');
+  bar.forEach(b=>b.onclick=()=>{const t=b.dataset.tool;annoTool=annoTool===t?null:t;
+    bar.forEach(x=>x.classList.toggle('on',x.dataset.tool===annoTool));});
+  $('#annoUndo').onclick=()=>{if(p.annots.length){p.annots.pop();renderAll();}};
+  $('#annoClear').onclick=()=>{p.annots=[];renderAll();};
+  const stage=$('#annoStage');let start=null;
+  const pos=e=>{const r=stage.getBoundingClientRect();const cx=(e.touches?e.touches[0].clientX:e.clientX);const cy=(e.touches?e.touches[0].clientY:e.clientY);
+    return {x:(cx-r.left)/r.width*100,y:(cy-r.top)/r.height*75};};
+  stage.onmousedown=e=>{if(!annoTool)return;start=pos(e);};
+  stage.onmouseup=e=>{if(!annoTool||!start)return;const end=pos(e);
+    if(annoTool==='text'){const t=prompt('注釈テキスト');if(t)p.annots.push({t:'text',x1:start.x,y1:start.y,text:t});}
+    else p.annots.push({t:annoTool,x1:start.x,y1:start.y,x2:end.x,y2:end.y});
+    start=null;renderAll();};}
+function editView(p,tp){return `<div class="two">
+    <div class="field"><label>工種 <span class="req">*</span></label><select id="fWt">${templates.map(t=>`<option ${t.wt===p.wt?'selected':''}>${esc(t.wt)}</option>`).join('')}</select></div>
+    <div class="field"><label>種別 <span class="req">*</span></label><select id="fKind">${tp.kinds.map(k=>`<option ${k===p.kind?'selected':''}>${esc(k)}</option>`).join('')}</select></div></div>
+    <div class="field"><label>撮影内容・タイトル <span class="req">*</span></label><input id="fTitle" value="${esc(p.title)}" placeholder="例：1F 配筋状況"></div>
+    <div class="field"><label>場所・測点（任意）</label><input id="fPlace" value="${esc(p.place)}"></div>
+    <div class="field"><label>備考（任意）</label><input id="fMemo" value="${esc(p.memo)}"></div>
+    <button class="btn primary" id="lockBtn" style="width:100%"><svg class="sic" viewBox="0 0 24 24" stroke="#fff"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> 黒板を確定（以後ロック）</button>
+    <p class="hint">確定すると変更不可になり、SHA-256ハッシュを保存します。</p>`;}
+function lockedView(p){return `<div class="locked-card"><div class="h"><svg class="sic" viewBox="0 0 24 24" style="stroke:var(--lock)"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> 確定済み（編集不可）</div>
+    <div class="kv"><span class="k">工種/種別</span><span class="v">${esc(p.wt)} / ${esc(p.kind)}</span></div>
+    <div class="kv"><span class="k">タイトル</span><span class="v">${esc(p.title)}</span></div>
+    <div class="kv"><span class="k">場所</span><span class="v">${esc(p.place)||'—'}</span></div>
+    <div class="kv"><span class="k">メモ</span><span class="v">${esc(p.memo)||'—'}</span></div>
+    <div class="hash">SHA-256: ${p.hash}</div><div class="verify ok" id="verLine">✓ ハッシュ保持中</div></div>
+    <button class="btn" id="verBtn" style="width:100%"><svg class="sic" viewBox="0 0 24 24" style="stroke:var(--accent)"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg> 改ざんがないか検証</button>`;}
+function payload(p){return JSON.stringify({blob:p.blobHash,wt:p.wt,kind:p.kind,title:p.title,place:p.place,memo:p.memo});}
+async function lock(p){if(!p.title){toast('タイトルを入力してください');return;}p.hash=await sha256(new TextEncoder().encode(payload(p)));p.locked=true;renderAll();toast('確定しました');}
+async function verify(p){const n=await sha256(new TextEncoder().encode(payload(p)));const l=$('#verLine');
+  if(n===p.hash){l.className='verify ok';l.textContent='✓ 改ざんなし（ハッシュ一致）';toast('✓ 改ざんなし');}else{l.className='verify bad';l.textContent='✗ 改ざんを検出';toast('✗ 改ざんを検出');}}
+
+$('#zipBtn').onclick=async()=>{if(!photos.length){toast('写真がありません');return;}toast('ZIP作成中…');
+  const zip=new JSZip();const cnt={};photos.slice().sort((a,b)=>a.ts-b.ts).forEach(p=>{cnt[p.wt]=(cnt[p.wt]||0)+1;
+    const num=String(cnt[p.wt]).padStart(3,'0');const safe=(p.title||p.kind).replace(/[\\\/:*?"<>|]/g,'_');
+    zip.folder(p.wt).file(`${num}_${p.kind}_${safe}.jpg`,p.src.split(',')[1],{base64:true});});
+  dl(await zip.generateAsync({type:'blob'}),'現場写真_工種別.zip');toast('ZIP書き出し完了');};
+function dl(b,n){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+
+let layoutPerPage=2;
+function ledgerPhotos(wt){return photos.filter(p=>p.wt===wt&&p.inLedger).sort((a,b)=>(a.order||a.ts)-(b.order||b.ts));}
+function movePhoto(id,dir){
+  const p=photos.find(x=>x.id===id);if(!p)return;
+  const sib=ledgerPhotos(p.wt);const i=sib.findIndex(x=>x.id===id);const j=i+dir;
+  if(j<0||j>=sib.length)return;
+  const a=sib[i],b=sib[j];const ao=a.order||a.ts,bo=b.order||b.ts;a.order=bo;b.order=ao;
+  $('#ledgerBtn').onclick();}
+$('#ledgerBtn').onclick=()=>{const body=$('#ledgerBody');
+  const used=photos.filter(p=>p.inLedger);
+  if(!used.length){body.innerHTML='<div class="empty">台帳に載せる写真がありません（写真のチェックを確認）。</div>';$('#ledgerModal').classList.add('show');return;}
+  let h=`<div style="border:1px solid var(--line);border-radius:9px;padding:16px;margin-bottom:14px;background:#f6f8fa">
+      <div style="font-weight:700;font-size:16px;color:var(--accent-d);margin-bottom:10px">${esc(project.name||'（工事名未設定）')}</div>
+      <div class="kv"><span class="k" style="width:110px">工事場所</span><span class="v">${esc(project.site)||'—'}</span></div>
+      <div class="kv"><span class="k" style="width:110px">工期</span><span class="v">${esc(period())}</span></div>
+      <div class="kv"><span class="k" style="width:110px">提出先（元請）</span><span class="v">${esc(project.client)||'—'}</span></div>
+      <div class="kv"><span class="k" style="width:110px">施工者</span><span class="v">${esc(project.builder)||'—'}</span></div>
+      ${!project.client?'<div style="font-size:11px;color:var(--bad);margin-top:8px">※「案件情報」タブで工事情報を入力すると表紙に反映されます</div>':''}
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <span style="font-size:12px;font-weight:700;color:var(--muted)">1ページの枚数</span>
+      ${[1,2,3,4].map(n=>`<button class="anno-btn lay ${layoutPerPage===n?'on':''}" data-n="${n}">${n}枚</button>`).join('')}
+      <span style="font-size:12px;color:var(--muted);margin-left:auto">台帳に載せる ${used.length} / 全 ${photos.length} 枚</span>
+    </div>`;
+  templates.forEach(tp=>{const ps=ledgerPhotos(tp.wt);if(!ps.length)return;
+    h+=`<div class="grp-h">${esc(tp.wt)}（${ps.length}枚）</div>`;
+    ps.forEach((p,i)=>{h+=`<div class="lp">
+      <div style="display:flex;flex-direction:column;gap:3px;margin-right:6px">
+        <button class="anno-btn mv" data-id="${p.id}" data-dir="-1" ${i===0?'disabled':''} style="padding:3px 7px">▲</button>
+        <button class="anno-btn mv" data-id="${p.id}" data-dir="1" ${i===ps.length-1?'disabled':''} style="padding:3px 7px">▼</button></div>
+      <img src="${p.src}"><div class="li"><div><b>種別</b>：${esc(p.kind)}</div>
+      <div><b>タイトル</b>：${esc(p.title||'—')}</div><div><b>場所</b>：${esc(p.place)||'—'}</div>
+      <div><b>メモ</b>：${esc(p.memo)||'—'}</div>${p.annots&&p.annots.length?'<div><b>注釈</b>：あり</div>':''}</div></div>`;});});
+  h+=`<div style="margin-top:14px;display:flex;gap:8px;align-items:center"><button class="btn primary" id="pdfBtn">PDFで保存（${layoutPerPage}枚/頁）</button></div>`;
+  body.innerHTML=h;
+  body.querySelectorAll('.lay').forEach(b=>b.onclick=()=>{layoutPerPage=+b.dataset.n;$('#ledgerBtn').onclick();});
+  body.querySelectorAll('.mv').forEach(b=>b.onclick=()=>movePhoto(b.dataset.id,+b.dataset.dir));
+  $('#pdfBtn').onclick=makePDF;
+  $('#ledgerModal').classList.add('show');};
+function closeLedger(){$('#ledgerModal').classList.remove('show');}
+async function makePDF(){
+  // 日本語を確実に出すため、整形済みHTMLを別ウィンドウで開き、ブラウザの「PDFに保存」で出力
+  const win=window.open('','_blank');
+  const groups={};templates.forEach(t=>{const ps=ledgerPhotos(t.wt);if(ps.length)groups[t.wt]=ps;});
+  const esc2=esc;
+  let pages='';
+  // 表紙
+  pages+=`<section class="cover">
+    <div class="cband"><div class="ctitle">工事写真台帳</div><div class="csub">CONSTRUCTION PHOTO RECORD</div></div>
+    <h1>${esc2(project.name||'工事写真台帳')}</h1>
+    <table class="ctbl">
+      <tr><th>工　事　名</th><td>${esc2(project.name)||'—'}</td></tr>
+      <tr><th>工 事 場 所</th><td>${esc2(project.site)||'—'}</td></tr>
+      <tr><th>工　　　期</th><td>${esc2(period())}</td></tr>
+      <tr><th>提 出 先</th><td>${esc2(project.client)||'—'}</td></tr>
+      <tr><th>施　工　者</th><td>${esc2(project.builder)||'—'}</td></tr>
+      <tr><th>現場代理人</th><td>${esc2(project.rep)||'—'}</td></tr>
+    </table>
+    <div class="cdate">作成日：${new Date().toLocaleDateString('ja-JP')}</div>
+  </section>`;
+  // 概要+目次
+  let toc='';let pc=2;Object.keys(groups).forEach(w=>{toc+=`<tr><td>${esc2(w)}</td><td style="text-align:right">${groups[w].length}</td></tr>`;});
+  pages+=`<section class="page"><div class="ph">工事概要</div>
+    ${project.overview?`<p class="ov">${esc2(project.overview)}</p>`:'<p class="ov">—</p>'}
+    <div class="ph2">目次</div><table class="toc"><tr><th>工種</th><th style="text-align:right">枚数</th></tr>${toc}</table></section>`;
+  // 工種ごと（レイアウト枚数対応・注釈反映）
+  const per=layoutPerPage;
+  const imgH = per===1?150:per===2?95:per<=3?78:62;
+  Object.keys(groups).forEach(w=>{
+    pages+=`<section class="divider"><div class="dline"></div><div class="dname">${esc2(w)}</div><div class="dcnt">${groups[w].length} 枚</div></section>`;
+    const ps=groups[w];
+    for(let i=0;i<ps.length;i+=per){
+      pages+=`<section class="page"><div class="ph">写真台帳 — ${esc2(w)}</div>`;
+      for(let k=0;k<per;k++){const p=ps[i+k];if(!p)continue;
+        const ann=(p.annots||[]).map(a=>annoToSvgColored?annoToSvgColored(a):annoToSvg(a)).join('');
+        pages+=`<div class="prow" style="min-height:${imgH}mm">
+          <div class="pimg" style="height:${imgH}mm"><img src="${p.src}"><svg viewBox="0 0 100 75" preserveAspectRatio="none">${ann}</svg></div>
+          <table class="ptbl">
+            <tr><th>工種</th><td>${esc2(p.wt)}</td></tr>
+            <tr><th>種別</th><td>${esc2(p.kind)}</td></tr>
+            <tr><th>撮影内容</th><td>${esc2(p.title)||'—'}</td></tr>
+            <tr><th>場所・測点</th><td>${esc2(p.place)||'—'}</td></tr>
+            <tr><th>備考</th><td>${esc2(p.memo)||'—'}</td></tr>
+          </table></div>`;}
+      pages+=`</section>`;
+    }
+  });
+  win.document.write(`<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><title>${esc2(project.name||'写真台帳')}</title>
+  <style>
+    @page{size:A4;margin:14mm}
+    *{box-sizing:border-box;margin:0;padding:0;font-family:'BIZ UDPGothic','Yu Gothic',sans-serif}
+    body{color:#1f2933}
+    section{page-break-after:always;position:relative}
+    .cover{height:262mm;display:flex;flex-direction:column}
+    .cband{background:#1c6ea4;color:#fff;padding:18px 20px;margin:-2mm -2mm 0}
+    .ctitle{font-size:22px;font-weight:700;letter-spacing:.1em}.csub{font-size:10px;opacity:.85}
+    .cover h1{font-size:26px;margin:40px 6px}
+    .ctbl{width:90%;margin:10px auto;border-collapse:collapse}
+    .ctbl th,.ctbl td{border:1px solid #b9c4cf;padding:11px 12px;font-size:13px}
+    .ctbl th{background:#e8eef4;width:34%;text-align:left;font-weight:700}
+    .cdate{margin-top:auto;text-align:right;color:#666;font-size:12px}
+    .page{padding-top:4mm}
+    .ph{background:#1c6ea4;color:#fff;font-weight:700;font-size:14px;padding:8px 12px;margin-bottom:14px}
+    .ph2{background:#1c6ea4;color:#fff;font-weight:700;font-size:14px;padding:8px 12px;margin:20px 0 10px}
+    .ov{font-size:13px;line-height:1.9;padding:0 4px}
+    .toc{width:100%;border-collapse:collapse;margin-top:6px}
+    .toc th,.toc td{border-bottom:1px solid #d3dae2;padding:9px 8px;font-size:13px;text-align:left}
+    .toc th{color:#155680;border-bottom:2px solid #1c6ea4}
+    .divider{height:262mm;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#e8eef4}
+    .dline{width:100%;height:4px;background:#1c6ea4;position:absolute;top:50%}
+    .dname{font-size:26px;font-weight:700;color:#155680;z-index:1;background:#e8eef4;padding:0 20px}
+    .dcnt{color:#666;margin-top:14px;z-index:1;background:#e8eef4;padding:0 12px}
+    .prow{display:flex;gap:12px;margin-bottom:14px;align-items:flex-start}
+    .prow img{width:100%;height:100%;border:1px solid #b9c4cf;object-fit:cover;display:block}
+    .pimg{position:relative;width:50%}
+    .pimg svg{position:absolute;inset:0;width:100%;height:100%}
+    .ptbl{flex:1;border-collapse:collapse;height:fit-content}
+    .ptbl th,.ptbl td{border:1px solid #b9c4cf;padding:7px 9px;font-size:11.5px;text-align:left}
+    .ptbl th{background:#e8eef4;width:34%;color:#155680;font-weight:700}
+  </style></head><body>${pages}
+  <script>window.onload=()=>{setTimeout(()=>window.print(),400)}<\/script>
+  
+<!-- 全画面表示モーダル -->
+<div class="fullscreen-modal" id="fsModal">
+  <button class="close-fs" onclick="closeFsModal()">&times;</button>
+  <img id="fsImg" src="">
+  <div class="fs-info" id="fsInfo"></div>
+</div>
+<!-- 注釈全画面モーダル -->
+<div class="anno-full" id="annoFull">
+  <div class="anno-toolbar" id="annoToolbar">
+    <button onclick="closeAnnoFull()">✕ 閉じる</button>
+    <button data-at="arrow" onclick="setAnnoTool(this,'arrow')">矢印</button>
+    <button data-at="circle" onclick="setAnnoTool(this,'circle')">丸</button>
+    <button data-at="line" onclick="setAnnoTool(this,'line')">直線</button>
+    <button data-at="free" onclick="setAnnoTool(this,'free')">フリーハンド</button>
+    <button data-at="text" onclick="setAnnoTool(this,'text')">文字</button>
+    <label>色<input type="color" id="annoColor" value="#e53935"></label>
+    <label>太さ<select id="annoWidth"><option value="1">細</option><option value="2" selected>中</option><option value="3.5">太</option></select></label>
+    <button onclick="annoUndoFull()">取消</button>
+    <button onclick="annoClearFull()">全消去</button>
+  </div>
+  <div class="anno-canvas-wrap" id="annoCanvasWrap">
+    <img id="annoFullImg" src="">
+    <svg id="annoFullSvg" viewBox="0 0 100 75" preserveAspectRatio="none"></svg>
+  </div>
+</div>
+</body></html>`);
+  win.document.close();
+  toast('印刷画面から「PDFに保存」を選んでください');
+}
+
+function renderAll(){renderTree();renderGrid();renderDetail();}
+renderAll();
+</script>
+
+<!-- 全画面表示モーダル -->
+<div class="fullscreen-modal" id="fsModal">
+  <button class="close-fs" onclick="closeFsModal()">&times;</button>
+  <img id="fsImg" src="">
+  <div class="fs-info" id="fsInfo"></div>
+</div>
+<!-- 注釈全画面モーダル -->
+<div class="anno-full" id="annoFull">
+  <div class="anno-toolbar" id="annoToolbar">
+    <button onclick="closeAnnoFull()">✕ 閉じる</button>
+    <button data-at="arrow" onclick="setAnnoTool(this,'arrow')">矢印</button>
+    <button data-at="circle" onclick="setAnnoTool(this,'circle')">丸</button>
+    <button data-at="line" onclick="setAnnoTool(this,'line')">直線</button>
+    <button data-at="free" onclick="setAnnoTool(this,'free')">フリーハンド</button>
+    <button data-at="text" onclick="setAnnoTool(this,'text')">文字</button>
+    <label>色<input type="color" id="annoColor" value="#e53935"></label>
+    <label>太さ<select id="annoWidth"><option value="1">細</option><option value="2" selected>中</option><option value="3.5">太</option></select></label>
+    <button onclick="annoUndoFull()">取消</button>
+    <button onclick="annoClearFull()">全消去</button>
+  </div>
+  <div class="anno-canvas-wrap" id="annoCanvasWrap">
+    <img id="annoFullImg" src="">
+    <svg id="annoFullSvg" viewBox="0 0 100 75" preserveAspectRatio="none"></svg>
+  </div>
+</div>
+</body>
+</html>
