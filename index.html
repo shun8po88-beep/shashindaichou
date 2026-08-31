@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>写真台帳</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
@@ -401,9 +401,228 @@ tr:hover .mini-ed{opacity:1}
   .find{width:130px}
   .two-col{grid-template-columns:1fr}
 }
+/* ══ v13 追加：ログイン・会社設定 ══ */
+#gate{position:fixed;inset:0;background:var(--bg);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+#gate.on{display:flex}
+.gate-box{background:var(--panel);border:1px solid var(--line);border-radius:8px;width:100%;max-width:380px;padding:26px 28px}
+.gate-logo{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+.gate-logo .mark{width:24px;height:24px}
+.gate-logo .nm{font-size:15px;font-weight:600;letter-spacing:-.2px}
+.gate-sub{font-size:12px;color:var(--ink-3);margin-bottom:20px}
+.gate-tabs{display:flex;gap:2px;margin-bottom:16px;border-bottom:1px solid var(--line)}
+.gate-tabs button{flex:1;height:32px;border:none;background:none;cursor:pointer;font-size:12.5px;color:var(--ink-3);border-bottom:2px solid transparent;font-family:var(--f)}
+.gate-tabs button.on{color:var(--brand);border-bottom-color:var(--brand);font-weight:600}
+.gate-f{margin-bottom:11px}
+.gate-f label{display:block;font-size:11.5px;color:var(--ink-3);margin-bottom:3px}
+.gate-f input{width:100%;height:32px;border:1px solid var(--line-2);border-radius:var(--r);padding:0 9px;background:var(--panel);outline:none;font-size:13px}
+.gate-f input:focus{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-soft)}
+.gate-btn{width:100%;height:34px;border:none;border-radius:var(--r);background:var(--brand);color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--f);margin-top:4px}
+.gate-btn:hover{background:#0C5490}
+.gate-btn:disabled{opacity:.5;cursor:not-allowed}
+.gate-btn.sub{background:var(--panel);color:var(--ink-2);border:1px solid var(--line-2);margin-top:6px}
+.gate-btn.sub:hover{background:var(--panel-2)}
+.gate-msg{font-size:11.5px;padding:7px 9px;border-radius:var(--r);margin-bottom:12px;display:none}
+.gate-msg.on{display:block}
+.gate-msg.err{background:var(--stop-soft);color:var(--stop)}
+.gate-msg.ok{background:var(--ok-soft);color:var(--ok)}
+.gate-note{font-size:11px;color:var(--ink-4);margin-top:14px;line-height:1.6;padding-top:12px;border-top:1px solid var(--line)}
+
+/* 会社バッジ */
+.nav-org{padding:7px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:7px;background:var(--panel-2)}
+.nav-org .oi{width:18px;height:18px;border-radius:3px;background:var(--brand);color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+.nav-org .on-name{font-size:11.5px;font-weight:600;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.nav-org .me{font-size:10px;color:var(--ink-4)}
+
+/* アップロード進捗 */
+.upbar{position:fixed;bottom:0;left:var(--sb);right:0;background:var(--panel);border-top:1px solid var(--line);padding:7px 14px;display:none;align-items:center;gap:11px;z-index:120;font-size:12px}
+.upbar.on{display:flex}
+.upbar .track{flex:1;height:4px;background:var(--panel-2);border-radius:2px;overflow:hidden;max-width:280px}
+.upbar .fill{height:100%;background:var(--brand);width:0%;transition:width .2s}
+.upbar .n{font-variant-numeric:tabular-nums;color:var(--ink-3);font-size:11.5px}
+@media(max-width:1000px){.upbar{left:0}}
+
+/* 容量表示 */
+.quota{padding:6px 12px;border-top:1px solid var(--line);font-size:10.5px;color:var(--ink-4)}
+.quota .qbar{height:3px;background:var(--panel-2);border-radius:2px;margin-top:4px;overflow:hidden}
+.quota .qfill{height:100%;background:var(--brand);width:0%}
+.quota .qfill.warn{background:var(--warn)}
+.quota .qfill.full{background:var(--stop)}
+
+/* 権限バッジ */
+.role-tag{font-size:9.5px;font-weight:600;padding:1px 5px;border-radius:2px;background:var(--brand-soft);color:var(--brand)}
+.role-tag.ro{background:var(--panel-2);color:var(--ink-4)}
+
+/* 読み取り専用の帯 */
+.ro-banner{background:var(--warn-soft);border-bottom:1px solid var(--warn);color:var(--warn);padding:5px 14px;font-size:11.5px;display:none;align-items:center;gap:7px;flex-shrink:0}
+.ro-banner.on{display:flex}
+.ro-banner svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+
+
+/* ══ v14 黒板管理 ══ */
+.bd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:7px}
+.bd{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:var(--r);padding:9px 10px;cursor:pointer;transition:border-color .1s}
+.bd:hover{border-color:var(--brand);border-left-color:var(--brand)}
+.bd.done{border-left-color:var(--ok)}
+.bd-h{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.bd-k{font-size:11px;color:var(--ink-3);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bd-t{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bd-p{font-size:11px;color:var(--ink-4);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bd-a{display:flex;gap:4px;margin-top:7px;opacity:0;transition:opacity .1s}
+.bd:hover .bd-a{opacity:1}
+.bd-a .b{height:20px;font-size:10.5px;padding:0 7px}
+
+/* ══ v14 撮影モード ══ */
+#shoot{position:fixed;inset:0;background:#0B0D0F;z-index:900;display:none;flex-direction:column}
+#shoot.on{display:flex}
+.sh-top{height:52px;background:rgba(0,0,0,.75);display:flex;align-items:center;gap:9px;padding:0 12px;flex-shrink:0;color:#fff}
+.sh-top .x{width:30px;height:30px;border:none;background:rgba(255,255,255,.12);border-radius:var(--r);color:#fff;font-size:15px;cursor:pointer;flex-shrink:0}
+.sh-top .info{flex:1;min-width:0}
+.sh-top .t{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sh-top .s{font-size:11px;color:rgba(255,255,255,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sh-top .nav{display:flex;gap:3px;flex-shrink:0}
+.sh-top .nav button{width:28px;height:28px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);border-radius:var(--r);color:#fff;cursor:pointer;font-size:13px}
+
+#cam-wrap{flex:1;position:relative;overflow:hidden;background:#000;display:flex;align-items:center;justify-content:center}
+#cam{width:100%;height:100%;object-fit:contain;display:block}
+#cam-fallback{display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:rgba(255,255,255,.7);text-align:center;padding:24px}
+#cam-fallback svg{width:44px;height:44px;stroke:currentColor;fill:none;stroke-width:1.4}
+#cam-fallback button{height:38px;padding:0 20px;background:var(--brand);border:none;border-radius:var(--r);color:#fff;font-size:14px;cursor:pointer;font-family:var(--f)}
+
+#bb-preview{position:absolute;border:1px solid;border-radius:2px;padding:1.6% 1.8%;cursor:move;user-select:none;touch-action:none;line-height:1.5;box-shadow:0 1px 6px rgba(0,0,0,.3);min-width:120px}
+.bbp-l{display:flex;gap:5px;padding:2px 0}
+.bbp-l span{opacity:.85;min-width:4.2em;flex-shrink:0;font-size:.86em}
+.bbp-l b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+#sh-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .12s}
+#sh-flash.on{opacity:.85;transition:none}
+
+.sh-style{background:rgba(0,0,0,.75);padding:7px 10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;flex-shrink:0;overflow-x:auto}
+.sh-style .grp{display:flex;gap:2px;align-items:center}
+.sh-style .lb{font-size:10px;color:rgba(255,255,255,.5);margin-right:3px;white-space:nowrap}
+.sh-style button{height:24px;padding:0 9px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);border-radius:3px;color:rgba(255,255,255,.85);font-size:11px;cursor:pointer;white-space:nowrap;font-family:var(--f)}
+.sh-style button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+
+.sh-bottom{height:96px;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
+.sh-shutter{width:66px;height:66px;border-radius:50%;border:4px solid rgba(255,255,255,.85);background:#fff;cursor:pointer;flex-shrink:0;transition:transform .08s}
+.sh-shutter:active{transform:scale(.92)}
+#sh-last{width:46px;height:46px;object-fit:cover;border-radius:5px;border:2px solid rgba(255,255,255,.35);display:none}
+.sh-right{width:46px;text-align:right;color:rgba(255,255,255,.7);font-size:11px}
+#sh-status{position:absolute;bottom:104px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;padding:5px 13px;border-radius:14px;font-size:12px;pointer-events:none}
+
+@media(max-width:600px){
+  .sh-bottom{height:88px}
+  .sh-shutter{width:60px;height:60px}
+  #bb-preview{font-size:11px!important}
+}
+
+
+/* ══ v15 撮影方法の切替 ══ */
+.sh-mode{display:flex;gap:3px;align-items:center}
+.pos-badge{font-size:10.5px;padding:2px 7px;border-radius:10px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.6);white-space:nowrap}
+.pos-badge.ok{background:rgba(27,127,75,.35);color:#9FE3BC}
+#cam-caps{display:none;gap:4px;align-items:center}
+#device-hint{display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:rgba(255,255,255,.65);text-align:center;padding:20px;position:absolute;inset:0;pointer-events:none}
+#device-hint svg{width:40px;height:40px;stroke:currentColor;fill:none;stroke-width:1.4}
+
+/* 撮り直し確認 */
+#shot-preview{position:fixed;inset:0;background:#0B0D0F;z-index:940;display:none;flex-direction:column}
+#shot-preview.on{display:flex}
+#shot-preview .pv-wrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:8px}
+#pv-img{max-width:100%;max-height:100%;object-fit:contain}
+.pv-bar{height:80px;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;gap:14px;flex-shrink:0;padding:0 16px}
+.pv-bar button{height:44px;padding:0 26px;border-radius:var(--r);border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--f)}
+.pv-re{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.25)!important}
+.pv-ok{background:var(--brand);color:#fff}
+
+/* ══ v15 レイアウトビルダー ══ */
+.lb-wrap{display:grid;grid-template-columns:1fr 300px;gap:14px}
+@media(max-width:820px){.lb-wrap{grid-template-columns:1fr}}
+.lf{display:flex;align-items:center;gap:6px;padding:5px 7px;border:1px solid var(--line);border-radius:var(--r);margin-bottom:4px;background:var(--panel)}
+.lf.off{opacity:.45}
+.lf-cb input{width:14px;height:14px;accent-color:var(--brand);cursor:pointer}
+.lf-in{flex:1;min-width:0;height:24px;border:1px solid var(--line-2);border-radius:2px;padding:0 6px;font-size:12px;outline:none}
+.lf-in:focus{border-color:var(--brand)}
+.lf-k{font-size:10px;color:var(--ink-4);white-space:nowrap}
+.lf-a{display:flex;gap:2px}
+.lf-a .b{width:22px;height:22px;padding:0;justify-content:center;font-size:11px}
+#lb-add{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+#lb-canvas{width:100%;border:1px solid var(--line);border-radius:var(--r);display:block;background:#7b8fa1}
+.lb-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px}
+.lb-row label{width:70px;color:var(--ink-3);flex-shrink:0}
+.lb-row select,.lb-row input[type=text]{height:26px;border:1px solid var(--line-2);border-radius:2px;padding:0 6px;font-size:12px;outline:none;flex:1}
+.lb-row input[type=range]{flex:1;accent-color:var(--brand)}
+
+/* ══ v15 メンバー ══ */
+.mem{display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid var(--line);border-radius:var(--r);margin-bottom:4px}
+.mem-i{width:26px;height:26px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.mem-n{font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mem-sel{height:24px;border:1px solid var(--line-2);border-radius:2px;font-size:11.5px;padding:0 4px;outline:none;background:var(--panel)}
+
 </style>
 </head>
 <body>
+<!-- ═══ v13 ログイン画面 ═══ -->
+<div id="gate">
+  <div class="gate-box">
+    <div class="gate-logo">
+      <div class="mark"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="12" rx="1.5"/><circle cx="12" cy="13" r="3"/><path d="M8 7l1.2-2h5.6L16 7"/></svg></div>
+      <span class="nm">写真台帳</span>
+    </div>
+    <div class="gate-sub">工務店のための写真台帳</div>
+
+    <div class="gate-msg" id="gate-msg"></div>
+
+    <!-- ログイン／新規登録の切替 -->
+    <div class="gate-tabs" id="gate-tabs">
+      <button class="on" onclick="gateTab('login')">ログイン</button>
+      <button onclick="gateTab('signup')">新規登録</button>
+    </div>
+
+    <!-- ログイン -->
+    <div id="gate-login">
+      <div class="gate-f"><label>メールアドレス</label>
+        <input type="email" id="li-mail" autocomplete="username" placeholder="you@example.com"></div>
+      <div class="gate-f"><label>パスワード</label>
+        <input type="password" id="li-pass" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="gate-btn" onclick="doLogin()">ログイン</button>
+      <button class="gate-btn sub" onclick="doMagic()">メールのリンクでログイン</button>
+    </div>
+
+    <!-- 新規登録 -->
+    <div id="gate-signup" style="display:none">
+      <div class="gate-f"><label>お名前</label>
+        <input id="su-name" placeholder="山田 太郎"></div>
+      <div class="gate-f"><label>会社名</label>
+        <input id="su-org" placeholder="山田工務店"></div>
+      <div class="gate-f"><label>メールアドレス</label>
+        <input type="email" id="su-mail" autocomplete="username" placeholder="you@example.com"></div>
+      <div class="gate-f"><label>パスワード（8文字以上）</label>
+        <input type="password" id="su-pass" autocomplete="new-password" onkeydown="if(event.key==='Enter')doSignup()"></div>
+      <button class="gate-btn" onclick="doSignup()">登録して始める</button>
+    </div>
+
+    <!-- 招待リンクから来た場合 -->
+    <div id="gate-invite" style="display:none">
+      <div style="font-size:12.5px;color:var(--ink-2);margin-bottom:14px;line-height:1.6">
+        <b id="inv-project"></b> に招待されています。<br>
+        お名前とパスワードを設定してください。
+      </div>
+      <div class="gate-f"><label>お名前</label>
+        <input id="iv-name" placeholder="山田 太郎"></div>
+      <div class="gate-f"><label>メールアドレス</label>
+        <input type="email" id="iv-mail" autocomplete="username"></div>
+      <div class="gate-f"><label>パスワード（8文字以上）</label>
+        <input type="password" id="iv-pass" autocomplete="new-password"></div>
+      <button class="gate-btn" onclick="doAcceptInvite()">参加する</button>
+    </div>
+
+    <div class="gate-note" id="gate-note">
+      工事写真には現場の住所や施主の情報が含まれます。<br>
+      パスワードは他の方と共有しないでください。
+    </div>
+  </div>
+</div>
+
 
 <!-- ═══ SIDEBAR ═══ -->
 <nav id="nav">
@@ -413,11 +632,14 @@ tr:hover .mini-ed{opacity:1}
     <span class="nav-status" id="conn-dot" title="未接続"></span>
   </div>
 
+  <div class="nav-org" id="nav-org" style="display:none"></div>
+
   <div class="proj-bar">
     <button class="proj-sel" onclick="showProjectPicker()">
       <div style="min-width:0;flex:1">
-        <div class="pl">工事</div>
+        <div class="pl">工事 <span class="role-tag" id="role-tag" style="margin-left:3px"></span></div>
         <div class="pn" id="sb-proj-text">未選択</div>
+        <div class="pl" id="sb-proj-code" style="text-transform:none;letter-spacing:0;font-weight:400"></div>
       </div>
       <svg viewBox="0 0 24 24"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg>
     </button>
@@ -428,6 +650,10 @@ tr:hover .mini-ed{opacity:1}
     <button class="nav-i on" data-v="photos" onclick="showPage('photos')">
       <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="1.5"/><circle cx="12" cy="13.5" r="3"/><path d="M8 7l1.2-2h5.6L16 7"/></svg>
       写真<span class="ct" id="ct-photos">0</span>
+    </button>
+    <button class="nav-i" data-v="board" onclick="showPage('board')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M7 10h10M7 14h6"/></svg>
+      黒板<span class="ct" id="ct-board">0</span>
     </button>
     <button class="nav-i" data-v="ledger" onclick="showPage('ledger')">
       <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 9h16M9 9v11"/></svg>
@@ -453,6 +679,8 @@ tr:hover .mini-ed{opacity:1}
       <div id="recent-list"></div>
     </div>
   </div>
+
+  <div class="quota" id="quota"></div>
 
   <div class="nav-foot">
     <span class="kbd">Ctrl</span><span class="kbd">K</span>
@@ -494,15 +722,24 @@ tr:hover .mini-ed{opacity:1}
       </div>
       <div class="bar-sep"></div>
       <button class="b" onclick="selectAll()">全選択</button>
+      <button class="b" onclick="openMembers()">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20a6 6 0 0112 0"/><circle cx="17.5" cy="9" r="2.6"/><path d="M15 20a5 5 0 016-4.6"/></svg>
+        メンバー
+      </button>
       <button class="b" onclick="showShareCode()">
         <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.4 13.4l7.2 4.2M15.6 6.4l-7.2 4.2"/></svg>
         共有
       </button>
-      <button class="b pri" onclick="openUpload()">
+      <button class="b pri" id="btn-add" onclick="openUpload()">
         <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
         写真を追加
       </button>
     </div>
+  </div>
+
+  <div class="ro-banner" id="ro-banner">
+    <svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+    <span id="ro-msg"></span>
   </div>
 
   <div class="strip" id="strip"></div>
@@ -512,6 +749,7 @@ tr:hover .mini-ed{opacity:1}
     <button onclick="batchWt()">工種を変更</button>
     <button onclick="batchLedger(true)">台帳に入れる</button>
     <button onclick="batchLedger(false)">台帳から外す</button>
+    <button onclick="burnIntoExisting([...multiSel])">黒板を焼き込む</button>
     <button onclick="batchDelete()">削除</button>
     <button class="x" onclick="clearSel()">✕ 選択解除</button>
   </div>
@@ -541,6 +779,30 @@ tr:hover .mini-ed{opacity:1}
   </div>
 </section>
 
+
+<!-- ═══ 黒板 ═══ -->
+<section class="view" id="page-board">
+  <div class="bar">
+    <span class="bar-t">黒板</span>
+    <span class="bar-m" id="board-meta">撮影前に黒板を用意しておくと、現場では選んで撮るだけになります</span>
+    <div class="bar-r">
+      <button class="b" onclick="copyBoardsFrom()">他の工事からコピー</button>
+      <button class="b" onclick="generateBoards()">工種から一括作成</button>
+      <button class="b pri" onclick="addBoard()">＋ 黒板</button>
+    </div>
+  </div>
+  <div class="pane pad">
+    <div class="box" style="margin-bottom:12px">
+      <div class="box-t" style="display:flex;align-items:center;gap:8px">
+        黒板レイアウト
+        <button class="b" style="margin-left:auto" onclick="openLayoutBuilder()">＋ 新しく作る</button>
+      </div>
+      <div id="layout-list"></div>
+    </div>
+    <div id="board-list"></div>
+  </div>
+</section>
+
 <!-- ═══ 台帳 ═══ -->
 <section class="view" id="page-ledger">
   <div class="bar">
@@ -559,7 +821,11 @@ tr:hover .mini-ed{opacity:1}
         <svg viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2"/><rect x="7" y="14" width="10" height="7"/></svg>
         印刷
       </button>
-      <button class="b pri" onclick="exportPDF()">PDFで保存</button>
+      <button class="b" onclick="exportPDF()">PDFで保存</button>
+      <button class="b pri" onclick="openExport()">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Excel・Wordで保存
+      </button>
     </div>
   </div>
   <div class="led-wrap">
@@ -638,6 +904,14 @@ tr:hover .mini-ed{opacity:1}
         <div class="fld"><label>施工者</label><input id="p-builder" placeholder="○○工務店"></div>
         <div class="fld"><label>現場代理人</label><input id="p-rep" placeholder="山田 太郎"></div>
         <div class="fld"><label>工事概要</label><input id="p-overview" placeholder="木造2階建 延床120㎡"></div>
+        <div class="fld"><label>工期の状態</label>
+          <select id="p-status" class="form-select">
+            <option value="preparing">準備中</option>
+            <option value="active">工期中</option>
+            <option value="completed">完了（変更できなくなります）</option>
+            <option value="suspended">中断（変更できなくなります）</option>
+          </select>
+        </div>
       </div>
     </div>
   </div>
@@ -679,6 +953,13 @@ tr:hover .mini-ed{opacity:1}
       <div class="share-cd" id="share-code-display"></div>
       <button class="b" style="width:100%;justify-content:center;margin-top:8px" onclick="copyShareCode()">コードをコピー</button>
       <button class="b" style="width:100%;justify-content:center;margin-top:4px" onclick="copyShareUrl()">参加用URLをコピー</button>
+      <div style="border-top:1px solid var(--line);margin-top:12px;padding-top:12px;text-align:left">
+        <div style="font-size:11px;color:var(--ink-3);margin-bottom:6px">招待リンク（14日間有効・ログインが必要）</div>
+        <div style="display:flex;gap:5px">
+          <button class="b" style="flex:1;justify-content:center" onclick="makeInvite('shooter')">撮影者として招待</button>
+          <button class="b" style="flex:1;justify-content:center" onclick="makeInvite('viewer')">閲覧者として招待</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -729,6 +1010,238 @@ tr:hover .mini-ed{opacity:1}
   <button onclick="hideUndo()" style="background:none;border:none;color:rgba(255,255,255,.5)">✕</button>
 </div>
 
+<div class="upbar" id="upbar">
+  <span id="up-label">写真を保存しています</span>
+  <div class="track"><div class="fill" id="up-fill"></div></div>
+  <span class="n" id="up-n">0 / 0</span>
+</div>
+
+
+<!-- ═══ v14 撮影モード ═══ -->
+<div id="shoot">
+  <div class="sh-top">
+    <button class="x" onclick="stopShoot()">✕</button>
+    <div class="info">
+      <div class="t" id="sh-title"></div>
+      <div class="s" id="sh-sub"></div>
+    </div>
+    <div class="nav">
+      <button onclick="nextBoard(-1)" title="前の黒板">‹</button>
+      <button onclick="nextBoard(1)" title="次の黒板">›</button>
+    </div>
+  </div>
+
+  <div id="cam-wrap">
+    <video id="cam" playsinline muted autoplay></video>
+    <div id="cam-fallback">
+      <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.5"/><path d="M8 7l1.2-2h5.6L16 7"/></svg>
+      <div style="font-size:13px">カメラを直接使えないため、<br>端末の撮影アプリを使います</div>
+      <button onclick="document.getElementById('shoot-file').click()">撮影する</button>
+    </div>
+    <div id="device-hint">
+      <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.5"/><path d="M8 7l1.2-2h5.6L16 7"/></svg>
+      <div style="font-size:13px;line-height:1.7">端末のカメラで撮影します<br>
+        <span style="font-size:11.5px;opacity:.75">ズーム・ライト・ピント調整が使えます<br>
+        撮影後に黒板を自動で合成します</span></div>
+    </div>
+    <div id="bb-preview"></div>
+    <div id="sh-flash"></div>
+    <div id="sh-status"></div>
+  </div>
+
+  <div class="sh-style" id="sh-style">
+    <div class="grp"><span class="lb">黒板</span>
+      <button data-bt="green" onclick="setBbType('green')">緑</button>
+      <button data-bt="white" onclick="setBbType('white')">白</button>
+      <button data-bt="clear" onclick="setBbType('clear')">透過</button>
+    </div>
+    <div class="grp"><span class="lb">大きさ</span>
+      <button data-bs="sm" onclick="setBbSize('sm')">小</button>
+      <button data-bs="md" onclick="setBbSize('md')">中</button>
+      <button data-bs="lg" onclick="setBbSize('lg')">大</button>
+    </div>
+    <div class="grp"><span class="lb">位置</span>
+      <button data-bp="tl" onclick="setBbPos('tl')">左上</button>
+      <button data-bp="tr" onclick="setBbPos('tr')">右上</button>
+      <button data-bp="bl" onclick="setBbPos('bl')">左下</button>
+      <button data-bp="br" onclick="setBbPos('br')">右下</button>
+    </div>
+    <div class="grp" id="cam-caps"></div>
+    <span class="lb" id="cam-note">※黒板は指でドラッグして動かせます</span>
+  </div>
+
+  <div class="sh-style" id="sh-mode">
+    <div class="grp"><span class="lb">撮影方法</span>
+      <button data-cm="app" onclick="setCamMode('app')">アプリ内カメラ</button>
+      <button data-cm="device" onclick="setCamMode('device')">端末のカメラ</button>
+    </div>
+    <button id="confirm-toggle" onclick="toggleConfirm()">撮影後に確認</button>
+    <span class="pos-badge" id="pos-badge">位置を取得中</span>
+  </div>
+
+  <div class="sh-bottom">
+    <img id="sh-last" alt="">
+    <button class="sh-shutter" onclick="shutter()"></button>
+    <div class="sh-right" id="sh-count"></div>
+  </div>
+</div>
+
+<div class="mask" id="copy-modal">
+  <div class="dlg" style="max-width:420px">
+    <div class="dlg-h"><h2>どの工事から黒板をコピーしますか</h2>
+      <button class="x-b" onclick="document.getElementById('copy-modal').classList.remove('on')">✕</button></div>
+    <div class="dlg-b"><div id="copy-src"></div></div>
+  </div>
+</div>
+
+<input type="file" id="shoot-file" accept="image/*" capture="environment" hidden>
+
+
+<!-- ═══ v15 撮り直しの確認 ═══ -->
+<div id="shot-preview">
+  <div class="pv-wrap"><img id="pv-img" alt=""></div>
+  <div class="pv-bar">
+    <button class="pv-re" onclick="retakeShot()">撮り直す</button>
+    <button class="pv-ok" onclick="keepShot()">この写真を使う</button>
+  </div>
+</div>
+
+<!-- ═══ v15 レイアウトビルダー ═══ -->
+<div class="mask" id="layout-modal">
+  <div class="dlg" style="max-width:780px">
+    <div class="dlg-h"><h2>黒板レイアウトを作る</h2>
+      <button class="x-b" onclick="closeLayoutBuilder()">✕</button></div>
+    <div class="dlg-b">
+      <div class="lb-wrap">
+        <div>
+          <div class="lb-row"><label>名前</label>
+            <input type="text" id="lb-name" placeholder="例：外壁塗装用"></div>
+          <div class="lb-row"><label>列数</label>
+            <select id="lb-cols" onchange="lbSet('cols',this.value)">
+              <option value="1">1列（縦に並べる）</option>
+              <option value="2">2列（項目が多いとき）</option>
+            </select></div>
+          <div class="lb-row"><label>文字の大きさ</label>
+            <input type="range" id="lb-scale" min="0.7" max="1.4" step="0.1" value="1"
+                   oninput="lbSet('scale',this.value)">
+            <span id="lb-scale-v" style="width:44px;text-align:right;color:var(--ink-4);font-size:11px">1.0倍</span></div>
+
+          <div class="box-t" style="margin-top:12px">載せる項目（名前は自由に変えられます）</div>
+          <div id="lb-fields"></div>
+          <div class="box-t" style="margin-top:10px">項目を追加</div>
+          <div id="lb-add"></div>
+        </div>
+        <div>
+          <div class="box-t">見本</div>
+          <canvas id="lb-canvas" width="300" height="225"></canvas>
+          <div style="font-size:10.5px;color:var(--ink-4);margin-top:6px;line-height:1.6">
+            値が入っていない項目は、実際の写真では表示されません。<br>
+            色と位置は撮影画面で選べます。
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="dlg-f">
+      <button class="b" onclick="closeLayoutBuilder()">やめる</button>
+      <button class="b pri" onclick="saveLayout()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ v15 メンバー ═══ -->
+<div class="mask" id="member-modal">
+  <div class="dlg" style="max-width:460px">
+    <div class="dlg-h"><h2>この工事のメンバー</h2>
+      <button class="x-b" onclick="document.getElementById('member-modal').classList.remove('on')">✕</button></div>
+    <div class="dlg-b">
+      <div id="member-list"></div>
+      <div style="border-top:1px solid var(--line);margin-top:12px;padding-top:12px">
+        <div style="font-size:11px;color:var(--ink-3);margin-bottom:6px">招待リンク（14日間有効）</div>
+        <div style="display:flex;gap:5px">
+          <button class="b" style="flex:1;justify-content:center" onclick="makeInvite('manager')">現場責任者</button>
+          <button class="b" style="flex:1;justify-content:center" onclick="makeInvite('shooter')">撮影者</button>
+          <button class="b" style="flex:1;justify-content:center" onclick="makeInvite('viewer')">閲覧者</button>
+        </div>
+        <div style="font-size:10.5px;color:var(--ink-4);margin-top:7px;line-height:1.6">
+          会社管理者は何人でも置けます。上の一覧の「管理者に」から指定してください。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ v15 焼き込む黒板を選ぶ ═══ -->
+<div class="mask" id="burn-modal">
+  <div class="dlg" style="max-width:420px">
+    <div class="dlg-h"><h2>どの黒板を焼き込みますか</h2>
+      <button class="x-b" onclick="document.getElementById('burn-modal').classList.remove('on')">✕</button></div>
+    <div class="dlg-b">
+      <div style="font-size:11.5px;color:var(--ink-3);margin-bottom:8px">
+        選んだ写真に黒板を合成し、照合コードを付け直します。
+      </div>
+      <div id="burn-list"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ v16 出力の設定 ═══ -->
+<div class="mask" id="export-modal">
+  <div class="dlg" style="max-width:440px">
+    <div class="dlg-h"><h2>台帳を書き出す</h2>
+      <button class="x-b" onclick="document.getElementById('export-modal').classList.remove('on')">✕</button></div>
+    <div class="dlg-b">
+      <div style="font-size:12.5px;color:var(--ink-2);margin-bottom:12px">
+        台帳に載せる写真　<b id="exp-count">0</b>枚
+      </div>
+
+      <div class="lb-row"><label>画質</label>
+        <select id="exp-q" onchange="setExp('quality',this.value)">
+          <option value="ledger">高画質（1600×1200）</option>
+          <option value="print">標準（1200×900・印刷に十分）</option>
+          <option value="light">軽量（800×600・メール向き）</option>
+        </select></div>
+
+      <div class="lb-row"><label>分冊</label>
+        <select id="exp-split" onchange="setExp('splitAt',this.value)">
+          <option value="100">100枚ごと</option>
+          <option value="200">200枚ごと</option>
+          <option value="300">300枚ごと</option>
+          <option value="500">500枚ごと</option>
+          <option value="99999">分けない</option>
+        </select></div>
+
+      <div class="lb-row"><label>Word</label>
+        <select id="exp-per" onchange="setExp('perPage',this.value)">
+          <option value="1">1ページに1枚</option>
+          <option value="2">1ページに2枚</option>
+        </select></div>
+
+      <label style="display:flex;align-items:center;gap:7px;font-size:12px;margin:10px 0">
+        <input type="checkbox" id="exp-annot" onchange="setExp('includeAnnots',this.checked)"
+               style="width:14px;height:14px;accent-color:var(--brand)">
+        写真に書き込んだ注釈も一緒に出力する
+      </label>
+
+      <div style="background:var(--panel-2);border-radius:var(--r);padding:8px 10px;font-size:11.5px;color:var(--ink-3)"
+           id="exp-est"></div>
+
+      <div style="font-size:10.5px;color:var(--ink-4);margin-top:8px;line-height:1.6">
+        枚数が多いときは分冊すると、メールで送りやすい大きさになります。<br>
+        書き出し中は画面を閉じないでください。
+      </div>
+    </div>
+    <div class="dlg-f">
+      <button class="b" onclick="document.getElementById('export-modal').classList.remove('on');exportWord()">
+        Wordで保存
+      </button>
+      <button class="b pri" onclick="document.getElementById('export-modal').classList.remove('on');exportExcel()">
+        Excelで保存
+      </button>
+    </div>
+  </div>
+</div>
+
 <div id="tst"></div>
 <input type="file" id="file-input" accept="image/*" multiple hidden>
 <input type="file" id="camera-input" accept="image/*" capture="environment" hidden>
@@ -755,7 +1268,9 @@ function initSupabase(){
     return false;
   }
   try{
-    sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true }
+    });
     sbReady = true;
     setConnStatus('接続済み', 'ok');
     return true;
@@ -772,6 +1287,2480 @@ function setConnStatus(text, type){
   el.className = 'nav-status' + (type==='ok'?' on':type==='sync'?' busy':type==='err'?' err':'');
   el.title = text;
 }
+
+// ═══════════════════════════════════════════
+//  v13 認証・組織・画像処理
+// ═══════════════════════════════════════════
+
+let me = null;            // ログイン中のユーザー
+let myOrg = null;         // 所属会社
+let myRole = null;        // 現在の工事での権限
+let signedCache = {};      // 署名付きURLのキャッシュ
+
+// ── 画面の切替 ──
+function showGate(mode){
+  document.getElementById('gate').classList.add('on');
+  gateTab(mode || 'login');
+}
+function hideGate(){ document.getElementById('gate').classList.remove('on'); }
+
+function gateTab(t){
+  ['login','signup','invite'].forEach(k=>{
+    const el = document.getElementById('gate-'+k);
+    if(el) el.style.display = (k===t) ? '' : 'none';
+  });
+  const tabs = document.getElementById('gate-tabs');
+  tabs.style.display = (t==='invite') ? 'none' : '';
+  [...tabs.querySelectorAll('button')].forEach((b,i)=>
+    b.classList.toggle('on', ['login','signup'][i]===t));
+  gateMsg('');
+}
+
+function gateMsg(text, type){
+  const el = document.getElementById('gate-msg');
+  if(!text){ el.classList.remove('on'); return; }
+  el.textContent = text;
+  el.className = 'gate-msg on ' + (type||'err');
+}
+
+// ── ログイン ──
+async function doLogin(){
+  const email = document.getElementById('li-mail').value.trim();
+  const pass  = document.getElementById('li-pass').value;
+  if(!email || !pass){ gateMsg('メールアドレスとパスワードを入力してください'); return; }
+  gateMsg('確認しています...', 'ok');
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if(error){ gateMsg(authErrorJa(error.message)); return; }
+  await afterLogin();
+}
+
+// ── メールのリンクでログイン ──
+async function doMagic(){
+  const email = document.getElementById('li-mail').value.trim();
+  if(!email){ gateMsg('メールアドレスを入力してください'); return; }
+  const { error } = await sb.auth.signInWithOtp({
+    email, options:{ emailRedirectTo: location.href.split('?')[0] }
+  });
+  if(error){ gateMsg(authErrorJa(error.message)); return; }
+  gateMsg('ログイン用のリンクをメールで送りました。メールを開いてください。', 'ok');
+}
+
+// ── 新規登録（会社も同時に作る）──
+async function doSignup(){
+  const name  = document.getElementById('su-name').value.trim();
+  const org   = document.getElementById('su-org').value.trim();
+  const email = document.getElementById('su-mail').value.trim();
+  const pass  = document.getElementById('su-pass').value;
+
+  if(!name || !org || !email || !pass){ gateMsg('すべての項目を入力してください'); return; }
+  if(pass.length < 8){ gateMsg('パスワードは8文字以上にしてください'); return; }
+
+  gateMsg('登録しています...', 'ok');
+  const { data, error } = await sb.auth.signUp({
+    email, password: pass,
+    options:{ data:{ display_name: name } }
+  });
+  if(error){ gateMsg(authErrorJa(error.message)); return; }
+  if(!data.session){
+    gateMsg('確認メールを送りました。メール内のリンクを開いてから、ログインしてください。', 'ok');
+    return;
+  }
+  await createOrganization(org);
+  await afterLogin();
+}
+
+// ── 会社を作る ──
+async function createOrganization(name){
+  const slug = makeSlug(name);
+  const { data: org, error } = await sb.from('organizations')
+    .insert({ slug, name }).select().single();
+  if(error){ console.error(error); gateMsg('会社の登録に失敗しました：' + error.message); return null; }
+
+  await sb.from('org_members').insert({
+    org_id: org.id, user_id: (await sb.auth.getUser()).data.user.id, role: 'owner'
+  });
+  await sb.rpc('seed_standard_fields', { o: org.id });
+  return org;
+}
+
+function makeSlug(name){
+  const base = name.replace(/[^0-9A-Za-z]/g, '').toLowerCase() || 'org';
+  return base + '-' + Math.random().toString(36).slice(2, 7);
+}
+
+// ── 招待から参加 ──
+async function doAcceptInvite(){
+  const token = new URLSearchParams(location.search).get('invite');
+  const name  = document.getElementById('iv-name').value.trim();
+  const email = document.getElementById('iv-mail').value.trim();
+  const pass  = document.getElementById('iv-pass').value;
+  if(!name || !email || !pass){ gateMsg('すべての項目を入力してください'); return; }
+  if(pass.length < 8){ gateMsg('パスワードは8文字以上にしてください'); return; }
+
+  gateMsg('参加しています...', 'ok');
+  const { data, error } = await sb.auth.signUp({
+    email, password: pass, options:{ data:{ display_name: name } }
+  });
+  if(error && !String(error.message).includes('already')){
+    gateMsg(authErrorJa(error.message)); return;
+  }
+  if(!data?.session){
+    const r = await sb.auth.signInWithPassword({ email, password: pass });
+    if(r.error){ gateMsg(authErrorJa(r.error.message)); return; }
+  }
+  const ok = await consumeInvite(token);
+  if(!ok){ gateMsg('招待リンクが無効か、期限が切れています'); return; }
+  await afterLogin();
+}
+
+async function consumeInvite(token){
+  if(!token) return false;
+  const { data: inv } = await sb.from('project_invites')
+    .select('*').eq('token', token).maybeSingle();
+  if(!inv || inv.used_at || new Date(inv.expires_at) < new Date()) return false;
+  const uid = (await sb.auth.getUser()).data.user.id;
+  await sb.from('project_members')
+    .upsert({ project_id: inv.project_id, user_id: uid, role: inv.role });
+  await sb.from('project_invites')
+    .update({ used_by: uid, used_at: new Date().toISOString() }).eq('id', inv.id);
+  localStorage.setItem('lastProject', inv.project_id);
+  return true;
+}
+
+// ── ログイン後の初期化 ──
+async function afterLogin(){
+  const { data:{ user } } = await sb.auth.getUser();
+  if(!user){ showGate('login'); return; }
+  me = user;
+
+  const { data: prof } = await sb.from('profiles')
+    .select('*').eq('id', user.id).maybeSingle();
+  me.display_name = prof?.display_name || user.email.split('@')[0];
+
+  // 所属会社（無ければ作らせる）
+  const { data: om } = await sb.from('org_members')
+    .select('org_id, role, organizations(*)').eq('user_id', user.id).limit(1);
+
+  if(om && om.length){
+    myOrg = om[0].organizations;
+    myOrg.my_role = om[0].role;
+  }else{
+    // 工事にだけ招かれている場合は、その工事の会社を表示用に取る
+    const { data: pm } = await sb.from('project_members')
+      .select('project_id, projects(org_id, organizations(*))')
+      .eq('user_id', user.id).limit(1);
+    if(pm && pm.length) myOrg = pm[0].projects?.organizations || null;
+  }
+
+  hideGate();
+  renderOrgBadge();
+  await loadLayouts();
+
+  // 招待トークンがあれば消化
+  const token = new URLSearchParams(location.search).get('invite');
+  if(token) await consumeInvite(token);
+
+  await bootProject();
+}
+
+// ── ログアウト ──
+async function doLogout(){
+  if(!confirm('ログアウトしますか？')) return;
+  clearLocalTraces();
+  await sb.auth.signOut();
+  location.href = location.pathname;
+}
+
+function authErrorJa(m){
+  m = String(m || '');
+  if(m.includes('Invalid login')) return 'メールアドレスまたはパスワードが違います';
+  if(m.includes('already registered') || m.includes('already been')) return 'このメールアドレスは登録済みです。ログインしてください';
+  if(m.includes('at least')) return 'パスワードが短すぎます（8文字以上）';
+  if(m.includes('Email not confirmed')) return 'メールの確認が済んでいません。届いたメールのリンクを開いてください';
+  if(m.includes('rate limit') || m.includes('Too many')) return '試行回数が多すぎます。少し待ってからお試しください';
+  return 'エラー：' + m;
+}
+
+// ── 会社バッジ ──
+function renderOrgBadge(){
+  const el = document.getElementById('nav-org');
+  if(!el) return;
+  if(!myOrg){ el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  el.innerHTML =
+    '<div class="oi">' + esc((myOrg.name||'?').slice(0,1)) + '</div>' +
+    '<div style="min-width:0;flex:1">' +
+      '<div class="on-name">' + esc(myOrg.name) + '</div>' +
+      '<div class="me">' + esc(me?.display_name||'') + '</div>' +
+    '</div>' +
+    '<button class="x-b" title="ログアウト" onclick="doLogout()" style="width:20px;height:20px">' +
+      '<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2">' +
+      '<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>';
+  renderQuota();
+}
+
+// ── 使用容量 ──
+function renderQuota(){
+  const el = document.getElementById('quota');
+  if(!el || !myOrg) return;
+  const limitGB = myOrg.plan === 'free' ? 1 : 100;
+  const usedGB  = (myOrg.storage_used || 0) / 1073741824;
+  const pct     = Math.min(100, usedGB / limitGB * 100);
+  const cls     = pct > 90 ? 'full' : pct > 70 ? 'warn' : '';
+  el.innerHTML =
+    '<div>写真の保存量　' + usedGB.toFixed(2) + ' / ' + limitGB + ' GB</div>' +
+    '<div class="qbar"><div class="qfill ' + cls + '" style="width:' + pct + '%"></div></div>';
+}
+
+// ═══════════════════════════════════════════
+//  画像処理：3段階生成
+// ═══════════════════════════════════════════
+const IMG_SIZES = {
+  ledger: { w:1600, h:1200, q:0.82 },   // 台帳用
+  thumb:  { w: 400, h: 300, q:0.75 }    // 一覧用
+};
+
+// 長辺を指定サイズに収めて縮小する
+async function resizeToBlob(imgBitmap, maxW, maxH, quality){
+  let w = imgBitmap.width, h = imgBitmap.height;
+  const r = Math.min(maxW / w, maxH / h, 1);
+  w = Math.round(w * r); h = Math.round(h * r);
+
+  const cv = (typeof OffscreenCanvas !== 'undefined')
+    ? new OffscreenCanvas(w, h)
+    : Object.assign(document.createElement('canvas'), { width:w, height:h });
+  const ctx = cv.getContext('2d');
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(imgBitmap, 0, 0, w, h);
+
+  if(cv.convertToBlob) return await cv.convertToBlob({ type:'image/jpeg', quality });
+  return await new Promise(res => cv.toBlob(res, 'image/jpeg', quality));
+}
+
+// EXIFの向きを反映した ImageBitmap を作る
+async function orientedBitmap(file){
+  try{
+    return await createImageBitmap(file, { imageOrientation:'from-image' });
+  }catch(e){
+    const url = URL.createObjectURL(file);
+    const img = await new Promise((res, rej)=>{
+      const i = new Image(); i.onload = ()=>res(i); i.onerror = rej; i.src = url;
+    });
+    URL.revokeObjectURL(url);
+    return img;
+  }
+}
+
+// ═══════════════════════════════════════════
+//  署名付きURL
+// ═══════════════════════════════════════════
+async function signedUrl(path, bucket){
+  if(!path) return '';
+  const key = (bucket||'photos') + '|' + path;
+  const hit = signedCache[key];
+  if(hit && hit.exp > Date.now()) return hit.url;
+
+  const { data, error } = await sb.storage.from(bucket||'photos')
+    .createSignedUrl(path, 3600);
+  if(error || !data){ console.warn('署名URL失敗', path, error); return ''; }
+  signedCache[key] = { url: data.signedUrl, exp: Date.now() + 3300*1000 };
+  return data.signedUrl;
+}
+
+// まとめて署名（一覧表示用・高速）
+async function signedUrls(paths, bucket){
+  const need = paths.filter(p => p && !(signedCache[(bucket||'photos')+'|'+p]?.exp > Date.now()));
+  if(need.length){
+    const { data } = await sb.storage.from(bucket||'photos')
+      .createSignedUrls(need, 3600);
+    (data||[]).forEach(d=>{
+      if(d.signedUrl) signedCache[(bucket||'photos')+'|'+d.path] =
+        { url:d.signedUrl, exp: Date.now() + 3300*1000 };
+    });
+  }
+  const out = {};
+  paths.forEach(p=>{ if(p) out[p] = signedCache[(bucket||'photos')+'|'+p]?.url || ''; });
+  return out;
+}
+
+// ═══════════════════════════════════════════
+//  アップロード進捗
+// ═══════════════════════════════════════════
+function upProgress(done, total, label){
+  const bar = document.getElementById('upbar');
+  if(!bar) return;
+  if(total <= 0){ bar.classList.remove('on'); return; }
+  bar.classList.add('on');
+  document.getElementById('up-label').textContent = label || '写真を保存しています';
+  document.getElementById('up-n').textContent = done + ' / ' + total;
+  document.getElementById('up-fill').style.width = (done/total*100) + '%';
+  if(done >= total) setTimeout(()=>bar.classList.remove('on'), 900);
+}
+
+
+// ═══════════════════════════════════════════
+//  v14  電子小黒板の焼き込み・撮影モード
+// ═══════════════════════════════════════════
+
+// 黒板の見た目の設定（端末ごとに記憶する）
+let bbStyle = Object.assign(
+  { type:'green', size:'md', pos:'bl', x:null, y:null },
+  JSON.parse(localStorage.getItem('bbStyle') || '{}')
+);
+function saveBbStyle(){ localStorage.setItem('bbStyle', JSON.stringify(bbStyle)); }
+
+const BB_THEME = {
+  green: { bg:'rgba(23,58,42,0.92)',  fg:'#FFFFFF', line:'rgba(255,255,255,.32)', key:'#BFE3CE' },
+  white: { bg:'rgba(255,255,255,0.94)', fg:'#111111', line:'rgba(0,0,0,.22)',      key:'#555555' },
+  clear: { bg:'rgba(0,0,0,0.42)',      fg:'#FFFFFF', line:'rgba(255,255,255,.28)', key:'#D8D8D8' }
+};
+
+function fitText(ctx, text, maxW){
+  if(ctx.measureText(text).width <= maxW) return text;
+  let s = text;
+  while(s.length > 1 && ctx.measureText(s + '…').width > maxW) s = s.slice(0, -1);
+  return s + '…';
+}
+
+// ═══════════════════════════════════════════
+//  改ざん検知：ハッシュを写真ファイルに埋め込む
+//  （J-COMSIAと同じ SHA-256 を使うが、認定は受けていない独自方式）
+// ═══════════════════════════════════════════
+const HASH_TAG = 'PLHASH1:';
+
+async function embedHash(blob){
+  const buf = new Uint8Array(await blob.arrayBuffer());
+  if(!(buf[0] === 0xFF && buf[1] === 0xD8)) return { blob, hash:'' };
+
+  // 埋め込む前の内容でハッシュを取る
+  const hash = await sha256(buf.buffer);
+  const text = new TextEncoder().encode(HASH_TAG + hash);
+  const len  = text.length + 2;
+
+  // COMマーカー(0xFFFE)としてSOI直後に挿入する
+  const out = new Uint8Array(buf.length + 4 + text.length);
+  out.set([0xFF, 0xD8], 0);
+  out.set([0xFF, 0xFE, (len >> 8) & 0xFF, len & 0xFF], 2);
+  out.set(text, 6);
+  out.set(buf.subarray(2), 6 + text.length);
+  return { blob: new Blob([out], { type:'image/jpeg' }), hash };
+}
+
+// 埋め込んだハッシュを取り出し、内容と一致するか調べる
+async function verifyEmbedded(blob){
+  const buf = new Uint8Array(await blob.arrayBuffer());
+  if(!(buf[0] === 0xFF && buf[1] === 0xD8)) return { ok:false, reason:'JPEGではありません' };
+
+  let off = 2, found = null;
+  while(off < buf.length - 4){
+    if(buf[off] !== 0xFF) break;
+    const marker = buf[off + 1];
+    if(marker === 0xD8 || marker === 0x01 || (marker >= 0xD0 && marker <= 0xD7)){ off += 2; continue; }
+    if(marker === 0xDA) break;
+    const segLen = (buf[off + 2] << 8) | buf[off + 3];
+    if(marker === 0xFE){
+      const s = new TextDecoder().decode(buf.subarray(off + 4, off + 2 + segLen));
+      if(s.startsWith(HASH_TAG)){ found = { hash: s.slice(HASH_TAG.length), at: off, size: segLen + 2 }; break; }
+    }
+    off += 2 + segLen;
+  }
+  if(!found) return { ok:false, reason:'照合コードが見つかりません' };
+
+  // 埋め込んだ部分を取り除いて計算し直す
+  const rest = new Uint8Array(buf.length - found.size);
+  rest.set(buf.subarray(0, found.at), 0);
+  rest.set(buf.subarray(found.at + found.size), found.at);
+  const now = await sha256(rest.buffer);
+  return { ok: now === found.hash, expected: found.hash, actual: now };
+}
+
+// ═══════════════════════════════════════════
+//  v16  Excel / Word 台帳出力
+// ═══════════════════════════════════════════
+
+// 出力の設定（端末に記憶する）
+let expOpt = Object.assign(
+  { quality:'ledger', perPage:2, splitAt:300, includeAnnots:true },
+  JSON.parse(localStorage.getItem('expOpt') || '{}')
+);
+function saveExpOpt(){ localStorage.setItem('expOpt', JSON.stringify(expOpt)); }
+
+const EXP_QUALITY = {
+  ledger: { w:1600, h:1200, q:0.85, label:'高画質（1600×1200）' },
+  print:  { w:1200, h:900,  q:0.82, label:'標準（1200×900・印刷に十分）' },
+  light:  { w: 800, h:600,  q:0.78, label:'軽量（800×600・メール向き）' }
+};
+
+let libsLoaded = {};
+function loadScript(src, key){
+  if(libsLoaded[key]) return libsLoaded[key];
+  libsLoaded[key] = new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = () => rej(new Error(key + ' を読み込めませんでした'));
+    document.head.appendChild(s);
+  });
+  return libsLoaded[key];
+}
+const loadExcelJS = () => loadScript('https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js', 'exceljs');
+const loadJSZip   = () => loadScript('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js', 'jszip');
+
+// ── 出力対象の写真を集める ──
+function ledgerPhotos(){
+  return photos.filter(p => p.inLedger)
+    .sort((a, b) => (a.order || a.ts) - (b.order || b.ts));
+}
+
+// ── 写真を取得して、出力用の大きさに整える ──
+async function fetchForExport(p, spec){
+  const url = await signedUrl(p.pathLedger);
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('写真を取得できませんでした');
+  let blob = await res.blob();
+
+  // 注釈があれば焼き込む。縮小が必要ならここで行う。
+  const needAnnot = expOpt.includeAnnots && p.annots && p.annots.length;
+  const bmp = await orientedBitmap(blob);
+  const needResize = bmp.width > spec.w || bmp.height > spec.h;
+
+  if(!needAnnot && !needResize){
+    if(bmp.close) bmp.close();
+    return new Uint8Array(await blob.arrayBuffer());
+  }
+
+  const r = Math.min(spec.w / bmp.width, spec.h / bmp.height, 1);
+  const W = Math.round(bmp.width * r), H = Math.round(bmp.height * r);
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(bmp, 0, 0, W, H);
+  if(needAnnot) drawAnnotsOn(ctx, W, H, p.annots);
+  if(bmp.close) bmp.close();
+
+  const out = await new Promise(r2 => cv.toBlob(r2, 'image/jpeg', spec.q));
+  return new Uint8Array(await out.arrayBuffer());
+}
+
+// 注釈（矢印・丸・文字など）を画像に描く
+function drawAnnotsOn(ctx, W, H, annots){
+  const sx = W / 100, sy = H / 75;
+  ctx.save();
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  annots.forEach(a => {
+    const c = a.color || '#e53935';
+    const lw = Math.max(2, (a.width || 2) * (W / 400));
+    ctx.strokeStyle = c; ctx.fillStyle = c; ctx.lineWidth = lw;
+    const x1 = a.x1 * sx, y1 = a.y1 * sy, x2 = (a.x2 || 0) * sx, y2 = (a.y2 || 0) * sy;
+    if(a.t === 'arrow'){
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      const ang = Math.atan2(y2 - y1, x2 - x1), ah = lw * 4;
+      ctx.beginPath();
+      ctx.moveTo(x2 - ah * Math.cos(ang - .5), y2 - ah * Math.sin(ang - .5));
+      ctx.lineTo(x2, y2);
+      ctx.lineTo(x2 - ah * Math.cos(ang + .5), y2 - ah * Math.sin(ang + .5));
+      ctx.stroke();
+    }else if(a.t === 'circle'){
+      ctx.beginPath();
+      ctx.ellipse((x1 + x2) / 2, (y1 + y2) / 2, Math.abs(x2 - x1) / 2, Math.abs(y2 - y1) / 2, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }else if(a.t === 'line'){
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    }else if(a.t === 'free' && a.pts){
+      ctx.beginPath();
+      a.pts.forEach((pt, i) => i ? ctx.lineTo(pt.x * sx, pt.y * sy) : ctx.moveTo(pt.x * sx, pt.y * sy));
+      ctx.stroke();
+    }else if(a.t === 'text'){
+      ctx.font = 'bold ' + Math.max(12, lw * 6) + 'px "Noto Sans JP",sans-serif';
+      ctx.fillText(a.text || '', x1, y1);
+    }
+  });
+  ctx.restore();
+}
+
+// ── 台帳に載せる項目 ──
+function ledgerRows(p){
+  const rows = [
+    ['工種', p.wt], ['種別', p.kind], ['撮影内容', p.title],
+    ['場所', p.place], ['備考', p.memo]
+  ];
+  if(p.comment)      rows.push(['コメント', p.comment]);
+  if(p.exifDate)     rows.push(['撮影日時', p.exifDate]);
+  if(p.direction)    rows.push(['撮影方向', p.direction]);
+  if(p.witness)      rows.push(['立会者', p.witness]);
+  if(p.materialName) rows.push(['材料名', p.materialName + (p.materialSpec ? '（' + p.materialSpec + '）' : '')]);
+  if(p.dimension)    rows.push(['寸法', p.dimension]);
+  if(p.quantity)     rows.push(['数量', p.quantity]);
+  if(p.weather)      rows.push(['天候', p.weather + (p.temperature ? ' / ' + p.temperature : '')]);
+  return rows.filter(r => r[1]);
+}
+
+function periodText(){
+  if(project.start && project.end) return project.start + ' ～ ' + project.end;
+  return project.start || project.end || '';
+}
+
+// ═══════════════════════════════════════════
+//  Excel 出力
+// ═══════════════════════════════════════════
+async function exportExcel(){
+  const list = ledgerPhotos();
+  if(!list.length){ toast('台帳に載せる写真がありません'); return; }
+
+  try{
+    await loadExcelJS();
+    if(list.length > expOpt.splitAt) await loadJSZip();
+  }catch(e){ toast(e.message); return; }
+
+  const spec = EXP_QUALITY[expOpt.quality] || EXP_QUALITY.ledger;
+  const books = chunk(list, expOpt.splitAt);
+  const files = [];
+  let done = 0;
+
+  upProgress(0, list.length, 'Excelを作っています');
+
+  for(let bi = 0; bi < books.length; bi++){
+    const wb = new ExcelJS.Workbook();
+    wb.creator = project.builder || '写真台帳';
+    wb.created = new Date();
+
+    // 表紙
+    const cover = wb.addWorksheet('表紙');
+    cover.columns = [{ width:3 }, { width:20 }, { width:52 }];
+    cover.pageSetup = {
+      paperSize:9, orientation:'portrait', fitToPage:true, fitToWidth:1, fitToHeight:0,
+      margins:{ left:0.5, right:0.5, top:0.6, bottom:0.6, header:0.3, footer:0.3 }
+    };
+    cover.mergeCells('B2:C2');
+    cover.getCell('B2').value = project.name || '工事写真台帳';
+    cover.getCell('B2').font = { size:20, bold:true };
+    cover.getCell('B2').alignment = { horizontal:'center' };
+    cover.getRow(2).height = 40;
+    if(coverOpts.subtitle){
+      cover.mergeCells('B3:C3');
+      cover.getCell('B3').value = coverOpts.subtitle;
+      cover.getCell('B3').alignment = { horizontal:'center' };
+    }
+    let cr = 5;
+    const info = [
+      ['工事コード', currentProject?.code], ['工事場所', project.site],
+      ['工期', periodText()], ['提出先（元請）', project.client],
+      ['施工者', project.builder], ['現場代理人', project.rep],
+      ['工事概要', project.overview], ['写真枚数', list.length + '枚'],
+      ['作成日', new Date().toLocaleDateString('ja-JP')]
+    ];
+    if(books.length > 1) info.push(['分冊', (bi + 1) + ' / ' + books.length]);
+    info.forEach(([k, v]) => {
+      if(!v) return;
+      cover.getCell(cr, 2).value = k;
+      cover.getCell(cr, 2).font = { bold:true };
+      cover.getCell(cr, 2).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFF2F2F2' } };
+      cover.getCell(cr, 3).value = String(v);
+      [2, 3].forEach(c => cover.getCell(cr, c).border = allBorder());
+      cr++;
+    });
+    if(coverOpts.logoText){
+      cover.getCell(cr + 1, 3).value = coverOpts.logoText;
+      cover.getCell(cr + 1, 3).alignment = { horizontal:'right' };
+    }
+
+    // 写真シート（工種ごと）
+    const byWt = {};
+    books[bi].forEach(p => { (byWt[p.wt || '未分類'] ||= []).push(p); });
+
+    for(const wt of Object.keys(byWt)){
+      const ws = wb.addWorksheet(safeSheetName(wt));
+      ws.columns = [{ width:2 }, { width:7 }, { width:36 }, { width:14 }, { width:30 }];
+      // A4縦で横幅がはみ出さないように収める
+      ws.pageSetup = {
+        paperSize:9, orientation:'portrait', fitToPage:true, fitToWidth:1, fitToHeight:0,
+        margins:{ left:0.4, right:0.4, top:0.5, bottom:0.5, header:0.3, footer:0.3 }
+      };
+      ws.headerFooter = { oddFooter:'&C&P / &N' };
+      ws.views = [{ showGridLines:false }];
+      ws.getCell('B1').value = wt;
+      ws.getCell('B1').font = { size:14, bold:true };
+      ws.getRow(1).height = 22;
+
+      let row = 3;
+      for(const p of byWt[wt]){
+        const buf = await fetchForExport(p, spec);
+        const id = wb.addImage({ buffer:buf, extension:'jpeg' });
+
+        ws.getCell(row, 2).value = 'No.' + String(p.no || 0).padStart(3, '0');
+        ws.getCell(row, 2).font = { bold:true, size:10 };
+        ws.getCell(row, 2).alignment = { vertical:'top', horizontal:'left' };
+
+        // 写真は複数行にまたがって置く（行の高さは一定に保つ）
+        ws.addImage(id, { tl:{ col:2, row:row - 1 + 0.08 }, ext:{ width:268, height:201 } });
+
+        // 右側に項目表
+        const rows = ledgerRows(p);
+        const span = Math.max(rows.length, 11);   // 写真が収まる行数
+        for(let i = 0; i < span; i++) ws.getRow(row + i).height = 16;
+
+        rows.forEach((r, i) => {
+          const rr = row + i;
+          ws.getCell(rr, 4).value = r[0];
+          ws.getCell(rr, 4).font = { bold:true, size:9 };
+          ws.getCell(rr, 4).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFF2F2F2' } };
+          ws.getCell(rr, 4).alignment = { vertical:'middle' };
+          ws.getCell(rr, 5).value = String(r[1]);
+          ws.getCell(rr, 5).font = { size:9 };
+          ws.getCell(rr, 5).alignment = { wrapText:true, vertical:'middle' };
+          [4, 5].forEach(c => ws.getCell(rr, c).border = allBorder());
+        });
+
+        row += span + 2;
+        upProgress(++done, list.length, 'Excelを作っています');
+        if(done % 20 === 0) await new Promise(r => setTimeout(r, 0));  // 画面を止めない
+      }
+    }
+
+    const buf = await wb.xlsx.writeBuffer();
+    files.push({
+      name: fileBase() + (books.length > 1 ? '_' + (bi + 1) : '') + '.xlsx',
+      data: buf
+    });
+  }
+
+  await deliver(files, 'xlsx');
+  logAction('ledger.export', null, { format:'xlsx', count:list.length });
+}
+
+function allBorder(){
+  const s = { style:'thin', color:{ argb:'FF999999' } };
+  return { top:s, left:s, bottom:s, right:s };
+}
+function safeSheetName(s){
+  return String(s).replace(/[\\\/\?\*\[\]:]/g, '_').slice(0, 30) || 'シート';
+}
+
+// ═══════════════════════════════════════════
+//  Word 出力
+// ═══════════════════════════════════════════
+const EMU_PX = 9525;
+
+function wEsc(s){
+  return String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&apos;' }[c]));
+}
+function wP(t, o){
+  o = o || {};
+  const sz = o.size ? '<w:sz w:val="' + (o.size * 2) + '"/>' : '';
+  const b  = o.bold ? '<w:b/>' : '';
+  const jc = o.center ? '<w:jc w:val="center"/>' : '';
+  const sp = o.space ? '<w:spacing w:before="' + o.space + '"/>' : '';
+  return '<w:p><w:pPr>' + jc + sp + '</w:pPr><w:r><w:rPr>' + b + sz +
+         '</w:rPr><w:t xml:space="preserve">' + wEsc(t) + '</w:t></w:r></w:p>';
+}
+function wImg(rid, wPx, hPx, id){
+  const cx = Math.round(wPx * EMU_PX), cy = Math.round(hPx * EMU_PX);
+  return '<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:drawing>' +
+    '<wp:inline distT="0" distB="0" distL="0" distR="0">' +
+    '<wp:extent cx="' + cx + '" cy="' + cy + '"/><wp:docPr id="' + id + '" name="photo' + id + '"/>' +
+    '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">' +
+    '<a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">' +
+    '<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">' +
+    '<pic:nvPicPr><pic:cNvPr id="' + id + '" name="photo' + id + '"/><pic:cNvPicPr/></pic:nvPicPr>' +
+    '<pic:blipFill><a:blip r:embed="' + rid + '"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>' +
+    '<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' + cx + '" cy="' + cy + '"/></a:xfrm>' +
+    '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr>' +
+    '</pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>';
+}
+function wTable(rows){
+  const b = ['top','left','bottom','right','insideH','insideV']
+    .map(s => '<w:' + s + ' w:val="single" w:sz="4" w:color="999999"/>').join('');
+  const tr = rows.map(([k, v]) =>
+    '<w:tr><w:tc><w:tcPr><w:tcW w:w="1900" w:type="dxa"/><w:shd w:val="clear" w:fill="F2F2F2"/></w:tcPr>' +
+    wP(k, { size:9, bold:true }) + '</w:tc>' +
+    '<w:tc><w:tcPr><w:tcW w:w="6300" w:type="dxa"/></w:tcPr>' + wP(v, { size:9 }) + '</w:tc></w:tr>').join('');
+  return '<w:tbl><w:tblPr><w:tblW w:w="8200" w:type="dxa"/><w:tblBorders>' + b +
+         '</w:tblBorders></w:tblPr>' + tr + '</w:tbl>';
+}
+const wBreak = '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
+
+async function exportWord(){
+  const list = ledgerPhotos();
+  if(!list.length){ toast('台帳に載せる写真がありません'); return; }
+  try{ await loadJSZip(); }catch(e){ toast(e.message); return; }
+
+  const spec = EXP_QUALITY[expOpt.quality] || EXP_QUALITY.ledger;
+  const books = chunk(list, expOpt.splitAt);
+  const files = [];
+  let done = 0;
+  const perPage = Math.max(1, Math.min(2, expOpt.perPage));
+  const imgW = perPage === 1 ? 460 : 380;
+  const imgH = Math.round(imgW * 0.75);
+
+  upProgress(0, list.length, 'Wordを作っています');
+
+  for(let bi = 0; bi < books.length; bi++){
+    const zip = new JSZip();
+    const media = zip.folder('word').folder('media');
+    let body = '', rels = '', n = 0;
+
+    // 表紙
+    body += wP('', { size:11 }) + wP('', { size:11 });
+    body += wP(project.name || '工事写真台帳', { size:22, bold:true, center:true });
+    if(coverOpts.subtitle) body += wP(coverOpts.subtitle, { size:12, center:true });
+    body += wP('', { size:11 });
+    const info = [
+      ['工事コード', currentProject?.code || ''], ['工事場所', project.site],
+      ['工期', periodText()], ['提出先（元請）', project.client],
+      ['施工者', project.builder], ['現場代理人', project.rep],
+      ['工事概要', project.overview], ['写真枚数', list.length + '枚']
+    ].filter(r => r[1]);
+    if(books.length > 1) info.push(['分冊', (bi + 1) + ' / ' + books.length]);
+    info.push(['作成日', new Date().toLocaleDateString('ja-JP')]);
+    body += wTable(info);
+    if(coverOpts.logoText) body += wP(coverOpts.logoText, { size:10 });
+    body += wBreak;
+
+    // 工種ごとに写真
+    const byWt = {};
+    books[bi].forEach(p => { (byWt[p.wt || '未分類'] ||= []).push(p); });
+
+    let first = true;
+    for(const wt of Object.keys(byWt)){
+      if(!first) body += wBreak;
+      first = false;
+      body += wP(wt, { size:14, bold:true });
+
+      const group = byWt[wt];
+      for(let i = 0; i < group.length; i++){
+        const p = group[i];
+        const buf = await fetchForExport(p, spec);
+        const rid = 'rIdImg' + n;
+        media.file('image' + n + '.jpeg', buf);
+        rels += '<Relationship Id="' + rid + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/image' + n + '.jpeg"/>';
+
+        body += wP('No.' + String(p.no || 0).padStart(3, '0') + '　' + (p.title || p.kind || ''),
+                   { size:11, bold:true, space:120 });
+        body += wImg(rid, imgW, imgH, n + 1);
+        body += wTable(ledgerRows(p));
+        n++;
+
+        const last = (i === group.length - 1);
+        if(!last && (i + 1) % perPage === 0) body += wBreak;
+        else if(!last) body += wP('', { size:8 });
+
+        upProgress(++done, list.length, 'Wordを作っています');
+        if(done % 20 === 0) await new Promise(r => setTimeout(r, 0));
+      }
+    }
+
+    zip.file('[Content_Types].xml',
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="jpeg" ContentType="image/jpeg"/>' +
+      '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' +
+      '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>' +
+      '</Types>');
+
+    zip.folder('_rels').file('.rels',
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>' +
+      '</Relationships>');
+
+    zip.folder('word').folder('_rels').file('document.xml.rels',
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rIdStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
+      rels + '</Relationships>');
+
+    zip.folder('word').file('styles.xml',
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' +
+      '<w:docDefaults><w:rPrDefault><w:rPr>' +
+      '<w:rFonts w:ascii="Yu Gothic" w:eastAsia="Yu Gothic" w:hAnsi="Yu Gothic"/>' +
+      '<w:sz w:val="21"/></w:rPr></w:rPrDefault></w:docDefaults></w:styles>');
+
+    zip.folder('word').file('document.xml',
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" ' +
+      'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" ' +
+      'xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">' +
+      '<w:body>' + body +
+      '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/>' +
+      '<w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134"/></w:sectPr>' +
+      '</w:body></w:document>');
+
+    const blob = await zip.generateAsync({
+      type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      compression:'DEFLATE', compressionOptions:{ level:3 }
+    });
+    files.push({ name: fileBase() + (books.length > 1 ? '_' + (bi + 1) : '') + '.docx', data: blob });
+  }
+
+  await deliver(files, 'docx');
+  logAction('ledger.export', null, { format:'docx', count:list.length });
+}
+
+// ═══════════════════════════════════════════
+//  受け渡し
+// ═══════════════════════════════════════════
+function chunk(arr, n){
+  if(!n || arr.length <= n) return [arr];
+  const out = [];
+  for(let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n));
+  return out;
+}
+function fileBase(){
+  const nm = (project.name || '写真台帳').replace(/[\\\/:*?"<>|]/g, '_');
+  return nm + '_' + new Date().toISOString().slice(0, 10);
+}
+
+async function deliver(files, ext){
+  if(files.length === 1){
+    saveBlob(new Blob([files[0].data]), files[0].name);
+  }else{
+    await loadJSZip();
+    const zip = new JSZip();
+    files.forEach(f => zip.file(f.name, f.data));
+    const blob = await zip.generateAsync({ type:'blob', compression:'STORE' });
+    saveBlob(blob, fileBase() + '_' + ext + '.zip');
+  }
+  const total = files.reduce((s, f) => s + (f.data.size || f.data.byteLength || 0), 0);
+  toast(files.length > 1
+    ? files.length + '冊に分けて書き出しました（' + (total / 1048576).toFixed(1) + 'MB）'
+    : '書き出しました（' + (total / 1048576).toFixed(1) + 'MB）');
+}
+
+function saveBlob(blob, name){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+}
+
+// ── 出力設定の画面 ──
+function openExport(){
+  const list = ledgerPhotos();
+  if(!list.length){ toast('台帳に載せる写真がありません'); return; }
+  document.getElementById('exp-count').textContent = list.length;
+  document.getElementById('exp-q').value = expOpt.quality;
+  document.getElementById('exp-split').value = expOpt.splitAt;
+  document.getElementById('exp-per').value = expOpt.perPage;
+  document.getElementById('exp-annot').checked = expOpt.includeAnnots;
+  updateExportEstimate();
+  document.getElementById('export-modal').classList.add('on');
+}
+function setExp(k, v){
+  expOpt[k] = (k === 'splitAt' || k === 'perPage') ? parseInt(v, 10)
+            : (k === 'includeAnnots') ? !!v : v;
+  saveExpOpt();
+  updateExportEstimate();
+}
+function updateExportEstimate(){
+  const n = ledgerPhotos().length;
+  const per = { ledger:62, print:44, light:29 }[expOpt.quality] || 62;
+  const books = Math.ceil(n / (expOpt.splitAt || n || 1));
+  const mb = n * per / 1024;
+  document.getElementById('exp-est').textContent =
+    '出来上がり　約' + mb.toFixed(1) + 'MB' +
+    (books > 1 ? '（' + books + '冊に分割・ZIPで保存）' : '') +
+    '　所要 約' + Math.max(1, Math.round(n * 0.08)) + '秒';
+}
+
+
+// ═══════════════════════════════════════════
+//  v15  撮影方法の二本立て・レイアウト・メンバー
+// ═══════════════════════════════════════════
+
+// ── 黒板レイアウトの定義 ──
+const FIELD_CATALOG = [
+  { key:'project',       label:'工事名' },
+  { key:'work_type',     label:'工種' },
+  { key:'kind',          label:'種別' },
+  { key:'title',         label:'撮影内容' },
+  { key:'place',         label:'場所' },
+  { key:'memo',          label:'備考' },
+  { key:'date',          label:'撮影日' },
+  { key:'time',          label:'撮影時刻' },
+  { key:'builder',       label:'施工者' },
+  { key:'rep',           label:'現場代理人' },
+  { key:'witness',       label:'立会者' },
+  { key:'direction',     label:'撮影方向' },
+  { key:'material_name', label:'材料名' },
+  { key:'material_spec', label:'規格' },
+  { key:'dimension',     label:'寸法' },
+  { key:'quantity',      label:'数量' },
+  { key:'weather',       label:'天候' },
+  { key:'temperature',   label:'気温' }
+];
+
+const DEFAULT_LAYOUT = {
+  name:'標準', cols:1, scale:1.0, keyWidth:0.26,
+  fields:[
+    { key:'project',   label:'工事名',   on:true },
+    { key:'work_type', label:'工種',     on:true },
+    { key:'kind',      label:'種別',     on:true },
+    { key:'title',     label:'撮影内容', on:true },
+    { key:'place',     label:'場所',     on:true },
+    { key:'memo',      label:'備考',     on:true },
+    { key:'date',      label:'撮影日',   on:true }
+  ]
+};
+
+let layouts = [];
+let currentLayout = JSON.parse(JSON.stringify(DEFAULT_LAYOUT));
+
+async function loadLayouts(){
+  if(!myOrg) return;
+  const { data } = await sb.from('board_layouts')
+    .select('*').eq('org_id', myOrg.id).order('created_at');
+  layouts = data || [];
+  const def = layouts.find(l => l.is_default);
+  if(def && def.definition && def.definition.fields) currentLayout = def.definition;
+  renderLayoutList();
+}
+
+// 黒板に載せる値を取り出す
+function fieldValue(key, b, at){
+  const d = at || new Date();
+  switch(key){
+    case 'project':   return project.name || '';
+    case 'work_type': return b.work_type || b.wt || '';
+    case 'kind':      return b.kind || '';
+    case 'title':     return b.title || '';
+    case 'place':     return b.place || '';
+    case 'memo':      return b.memo || (b.values && b.values.memo) || '';
+    case 'date':      return d.toLocaleDateString('ja-JP');
+    case 'time':      return d.toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' });
+    case 'builder':   return project.builder || '';
+    case 'rep':       return project.rep || '';
+    default:          return (b.values && b.values[key]) || b[key] || '';
+  }
+}
+
+// レイアウトに従って行を組み立てる（値が空の行は出さない）
+function boardLines(b, layout, at){
+  const L = layout || currentLayout || DEFAULT_LAYOUT;
+  const out = [];
+  (L.fields || DEFAULT_LAYOUT.fields).forEach(f => {
+    if(!f.on) return;
+    const v = fieldValue(f.key, b, at);
+    if(v === '' && f.key !== 'date' && f.key !== 'time') return;
+    out.push([f.label, String(v)]);
+  });
+  return out.slice(0, 12);
+}
+
+// ── 黒板の寸法計算（2列対応）──
+function boardBox(W, H, lineCount, st, layout){
+  const L = layout || currentLayout || DEFAULT_LAYOUT;
+  const cols = L.cols === 2 ? 2 : 1;
+  const rows = Math.ceil(lineCount / cols);
+  const ratio = ({ sm:0.30, md:0.40, lg:0.52 }[st.size] || 0.40) * (cols === 2 ? 1.35 : 1);
+  const bw  = Math.round(Math.min(W * 0.92, W * ratio));
+  const pad = Math.round(bw * 0.035);
+  const fs  = Math.max(9, Math.round(bw / cols * 0.055 * (L.scale || 1)));
+  const lh  = Math.round(fs * 1.62);
+  const bh  = lh * rows + pad * 2;
+  const m   = Math.round(W * 0.022);
+  let x, y;
+  if(st.x != null && st.y != null){ x = st.x * W; y = st.y * H; }
+  else if(st.pos === 'br'){ x = W - bw - m; y = H - bh - m; }
+  else if(st.pos === 'tl'){ x = m;          y = m; }
+  else if(st.pos === 'tr'){ x = W - bw - m; y = m; }
+  else                    { x = m;          y = H - bh - m; }
+  x = Math.max(0, Math.min(W - bw, Math.round(x)));
+  y = Math.max(0, Math.min(H - bh, Math.round(y)));
+  return { x, y, w:bw, h:bh, pad, fs, lh, cols, rows };
+}
+
+// ── 焼き込み（2列対応）──
+function burnBoard(ctx, W, H, b, st, layout, at){
+  const L = layout || currentLayout || DEFAULT_LAYOUT;
+  const lines = boardLines(b, L, at);
+  if(!lines.length) return null;
+  const box = boardBox(W, H, lines.length, st, L);
+  const th = BB_THEME[st.type] || BB_THEME.green;
+  const colW = (box.w - box.pad * 2) / box.cols;
+  const keyW = Math.round(colW * (L.keyWidth || 0.26));
+
+  ctx.save();
+  ctx.fillStyle = th.bg;
+  ctx.fillRect(box.x, box.y, box.w, box.h);
+  ctx.strokeStyle = th.line;
+  ctx.lineWidth = Math.max(1, Math.round(box.w * 0.005));
+  ctx.strokeRect(box.x + .5, box.y + .5, box.w - 1, box.h - 1);
+  ctx.textBaseline = 'middle';
+
+  lines.forEach((row, i) => {
+    const col = box.cols === 2 ? Math.floor(i / box.rows) : 0;
+    const r   = box.cols === 2 ? i % box.rows : i;
+    const cx  = box.x + box.pad + colW * col;
+    const cy  = box.y + box.pad + box.lh * r + box.lh / 2;
+
+    if(r > 0){
+      ctx.strokeStyle = th.line;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(cx, box.y + box.pad + box.lh * r);
+      ctx.lineTo(cx + colW - (box.cols === 2 && col === 0 ? box.pad : 0),
+                 box.y + box.pad + box.lh * r);
+      ctx.stroke();
+    }
+    ctx.font = '500 ' + Math.round(box.fs * 0.84) + 'px "Noto Sans JP",sans-serif';
+    ctx.fillStyle = th.key;
+    ctx.fillText(fitText(ctx, row[0], keyW - 4), cx, cy);
+
+    ctx.font = '700 ' + box.fs + 'px "Noto Sans JP",sans-serif';
+    ctx.fillStyle = th.fg;
+    ctx.fillText(fitText(ctx, row[1], colW - keyW - box.pad), cx + keyW, cy);
+  });
+
+  // 2列のときは中央に区切り線
+  if(box.cols === 2){
+    ctx.strokeStyle = th.line;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(box.x + box.w / 2, box.y + box.pad);
+    ctx.lineTo(box.x + box.w / 2, box.y + box.h - box.pad);
+    ctx.stroke();
+  }
+  ctx.restore();
+  return box;
+}
+
+// ═══════════════════════════════════════════
+//  撮影方法の切替
+// ═══════════════════════════════════════════
+let camMode = localStorage.getItem('camMode') || 'app';   // app / device
+let confirmShot = localStorage.getItem('confirmShot') !== '0';
+let pendingShot = null;   // 確認待ちの写真
+
+function setCamMode(m){
+  camMode = m;
+  localStorage.setItem('camMode', m);
+  syncModeButtons();
+  if(m === 'app') startCamera();
+  else stopCamera();
+}
+function syncModeButtons(){
+  document.querySelectorAll('#sh-mode [data-cm]').forEach(b =>
+    b.classList.toggle('on', b.dataset.cm === camMode));
+  const cam = document.getElementById('cam');
+  const hint = document.getElementById('device-hint');
+  const fb = document.getElementById('cam-fallback');
+  if(cam)  cam.style.display  = camMode === 'app' ? '' : 'none';
+  if(hint) hint.style.display = camMode === 'device' ? 'flex' : 'none';
+  if(fb && camMode === 'device') fb.style.display = 'none';
+  const caps = document.getElementById('cam-caps');
+  if(caps && camMode === 'device') caps.style.display = 'none';
+  const cb = document.getElementById('confirm-toggle');
+  if(cb) cb.classList.toggle('on', confirmShot);
+}
+function toggleConfirm(){
+  confirmShot = !confirmShot;
+  localStorage.setItem('confirmShot', confirmShot ? '1' : '0');
+  syncModeButtons();
+  toast(confirmShot ? '撮影後に確認します' : '撮影後すぐ保存します');
+}
+
+async function startCamera(){
+  if(camStream) return;
+  try{
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:{ ideal:'environment' }, width:{ ideal:1920 }, height:{ ideal:1440 } },
+      audio:false
+    });
+    const v = document.getElementById('cam');
+    v.srcObject = camStream; await v.play();
+    document.getElementById('cam-fallback').style.display = 'none';
+    v.style.display = '';
+    detectCamCaps();
+  }catch(e){
+    console.warn('カメラを使えません', e);
+    // 設定は変えずに、この場だけ端末カメラへ切り替える
+    document.getElementById('cam').style.display = 'none';
+    document.getElementById('cam-fallback').style.display = 'flex';
+    document.getElementById('device-hint').style.display = 'none';
+    toast('カメラを直接使えないため、端末のカメラで撮影します');
+  }
+}
+function stopCamera(){
+  if(camStream){ camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+  const v = document.getElementById('cam');
+  if(v) v.srcObject = null;
+}
+
+// 端末が拡大・ライトに対応していれば操作を出す
+function detectCamCaps(){
+  const el = document.getElementById('cam-caps');
+  if(!el || !camStream) return;
+  const track = camStream.getVideoTracks()[0];
+  const caps = track.getCapabilities ? track.getCapabilities() : {};
+  let h = '';
+  if(caps.zoom)  h += '<button class="b" onclick="camZoom(-1)">−</button><span class="lb">拡大</span><button class="b" onclick="camZoom(1)">＋</button>';
+  if(caps.torch) h += '<button class="b" id="torch-b" onclick="camTorch()">ライト</button>';
+  el.innerHTML = h;
+  el.style.display = h ? 'flex' : 'none';
+  const note = document.getElementById('cam-note');
+  if(note) note.style.display = h ? 'none' : '';
+}
+async function camZoom(d){
+  const t = camStream?.getVideoTracks()[0]; if(!t) return;
+  const c = t.getCapabilities(); const s = t.getSettings();
+  const step = (c.zoom.max - c.zoom.min) / 8;
+  const z = Math.max(c.zoom.min, Math.min(c.zoom.max, (s.zoom || c.zoom.min) + step * d));
+  await t.applyConstraints({ advanced:[{ zoom:z }] });
+}
+async function camTorch(){
+  const t = camStream?.getVideoTracks()[0]; if(!t) return;
+  const on = !(t.getSettings().torch);
+  await t.applyConstraints({ advanced:[{ torch:on }] });
+  document.getElementById('torch-b')?.classList.toggle('on', on);
+}
+
+// ═══════════════════════════════════════════
+//  位置情報と撮影時刻
+// ═══════════════════════════════════════════
+let lastPos = null, posWatch = null;
+
+function startWatchPos(){
+  if(!navigator.geolocation || posWatch != null) return;
+  posWatch = navigator.geolocation.watchPosition(
+    p => { lastPos = { lat:p.coords.latitude, lng:p.coords.longitude, acc:p.coords.accuracy }; showPosBadge(); },
+    e => { console.warn('位置情報を取得できません', e.message); showPosBadge(e.message); },
+    { enableHighAccuracy:true, maximumAge:15000, timeout:12000 }
+  );
+}
+function stopWatchPos(){
+  if(posWatch != null){ navigator.geolocation.clearWatch(posWatch); posWatch = null; }
+}
+function showPosBadge(err){
+  const el = document.getElementById('pos-badge');
+  if(!el) return;
+  if(lastPos){
+    el.textContent = '位置 ±' + Math.round(lastPos.acc) + 'm';
+    el.className = 'pos-badge ok';
+  }else{
+    el.textContent = err ? '位置情報なし' : '位置を取得中';
+    el.className = 'pos-badge';
+  }
+}
+
+// ═══════════════════════════════════════════
+//  シャッターと撮り直し
+// ═══════════════════════════════════════════
+async function shutter(){
+  if(!activeBoard) return;
+  if(camMode === 'device'){ document.getElementById('shoot-file').click(); return; }
+
+  const v = document.getElementById('cam');
+  if(!camStream || !v.videoWidth){ document.getElementById('shoot-file').click(); return; }
+
+  const W = v.videoWidth, H = v.videoHeight;
+  const at = new Date();
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  ctx.drawImage(v, 0, 0, W, H);
+  burnBoard(ctx, W, H, activeBoard, bbStyle, currentLayout, at);
+  flash();
+
+  const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.92));
+  if(confirmShot) showShotPreview(blob, at, null);
+  else await saveShot(blob, null, at);
+}
+
+// 端末のカメラアプリから戻ってきた写真
+async function onShootFile(files){
+  for(const f of files){
+    if(!f.type.startsWith('image/')) continue;
+    const at = new Date();
+    const bmp = await orientedBitmap(f);
+    const cv = document.createElement('canvas');
+    cv.width = bmp.width; cv.height = bmp.height;
+    const ctx = cv.getContext('2d');
+    ctx.drawImage(bmp, 0, 0);
+    burnBoard(ctx, bmp.width, bmp.height, activeBoard, bbStyle, currentLayout, at);
+    if(bmp.close) bmp.close();
+    const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.92));
+    if(confirmShot) showShotPreview(blob, at, f);
+    else await saveShot(blob, f, at);
+  }
+}
+
+function showShotPreview(blob, at, srcFile){
+  pendingShot = { blob, at, srcFile };
+  const img = document.getElementById('pv-img');
+  img.src = URL.createObjectURL(blob);
+  document.getElementById('shot-preview').classList.add('on');
+}
+function retakeShot(){
+  if(pendingShot) URL.revokeObjectURL(document.getElementById('pv-img').src);
+  pendingShot = null;
+  document.getElementById('shot-preview').classList.remove('on');
+}
+async function keepShot(){
+  if(!pendingShot) return;
+  const { blob, at, srcFile } = pendingShot;
+  document.getElementById('shot-preview').classList.remove('on');
+  pendingShot = null;
+  await saveShot(blob, srcFile, at);
+}
+
+// ═══════════════════════════════════════════
+//  外部機材で撮った写真に、後から黒板を焼き込む
+// ═══════════════════════════════════════════
+async function burnIntoExisting(ids){
+  if(!canWrite()){ toast('編集する権限がありません'); return; }
+  const list = ids.map(id => photos.find(p => p.id === id))
+                  .filter(p => p && canEditPhoto(p));
+  if(!list.length){ toast('焼き込める写真がありません'); return; }
+
+  if(!boards.length){ toast('先に黒板を作ってください'); showPage('board'); return; }
+
+  // 焼き込む黒板を選ぶ
+  const el = document.getElementById('burn-list');
+  el.innerHTML = boards.map(b =>
+    '<div class="pj-r" onclick="doBurnInto(\'' + b.id + '\')">' +
+    '<div style="flex:1;min-width:0"><div class="nm">' + esc(b.title || b.kind || '—') + '</div>' +
+    '<div class="cd">' + esc(b.work_type || '') + (b.place ? ' ・ ' + esc(b.place) : '') + '</div></div></div>').join('');
+  burnTargets = list.map(p => p.id);
+  document.getElementById('burn-modal').classList.add('on');
+}
+let burnTargets = [];
+
+async function doBurnInto(boardId){
+  document.getElementById('burn-modal').classList.remove('on');
+  const b = boards.find(x => x.id === boardId); if(!b) return;
+  const ids = burnTargets.slice(); burnTargets = [];
+  let done = 0;
+  upProgress(0, ids.length, '黒板を焼き込んでいます');
+
+  for(const id of ids){
+    const p = photos.find(x => x.id === id);
+    try{ await burnOne(p, b); }catch(e){ console.error(e); }
+    upProgress(++done, ids.length, '黒板を焼き込んでいます');
+  }
+  clearSel(); renderAll();
+  toast(done + '枚に黒板を焼き込みました');
+}
+
+async function burnOne(p, b){
+  // 元の写真を取ってくる
+  const url  = await signedUrl(p.pathOrig || p.pathLedger);
+  const blob = await (await fetch(url)).blob();
+  const bmp  = await orientedBitmap(blob);
+  const at   = p.exifDate ? new Date(p.exifDate.replace(' ', 'T')) : new Date(p.ts);
+
+  const cv = document.createElement('canvas');
+  cv.width = bmp.width; cv.height = bmp.height;
+  const ctx = cv.getContext('2d');
+  ctx.drawImage(bmp, 0, 0);
+  burnBoard(cv.getContext('2d'), bmp.width, bmp.height, b, bbStyle, currentLayout, at);
+  if(bmp.close) bmp.close();
+
+  const burned = await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.92));
+  const stamped = await embedHash(burned);
+  const bmp2 = await orientedBitmap(stamped.blob);
+  const ledger = await resizeToBlob(bmp2, IMG_SIZES.ledger.w, IMG_SIZES.ledger.h, IMG_SIZES.ledger.q);
+  const thumb  = await resizeToBlob(bmp2, IMG_SIZES.thumb.w,  IMG_SIZES.thumb.h,  IMG_SIZES.thumb.q);
+  if(bmp2.close) bmp2.close();
+
+  await Promise.all([
+    sb.storage.from('photos').upload(p.pathLedger, ledger, { contentType:'image/jpeg', upsert:true }),
+    sb.storage.from('photos').upload(p.pathThumb,  thumb,  { contentType:'image/jpeg', upsert:true })
+  ]);
+
+  await sb.from('photos').update({
+    board_id: b.id, work_type: b.work_type, kind: b.kind,
+    title: b.title || p.title, place: b.place || p.place,
+    phase: b.phase, category: b.category,
+    hash: stamped.hash,
+    bytes_total: ledger.size + thumb.size + (p.pathOrig ? 0 : 0)
+  }).eq('id', p.id);
+
+  Object.assign(p, {
+    wt:b.work_type, kind:b.kind, title:b.title || p.title,
+    place:b.place || p.place, hash:stamped.hash, boardId:b.id
+  });
+  delete signedCache['photos|' + p.pathLedger];
+  delete signedCache['photos|' + p.pathThumb];
+  await attachUrls([p]);
+  logAction('photo.burnBoard', p.id, { board_id:b.id });
+}
+
+// ═══════════════════════════════════════════
+//  黒板レイアウトビルダー
+// ═══════════════════════════════════════════
+let editingLayout = null;
+
+function openLayoutBuilder(id){
+  const found = id ? layouts.find(l => l.id === id) : null;
+  editingLayout = found
+    ? { id:found.id, ...JSON.parse(JSON.stringify(found.definition || DEFAULT_LAYOUT)), name:found.name }
+    : JSON.parse(JSON.stringify(DEFAULT_LAYOUT));
+  if(!editingLayout.fields) editingLayout.fields = JSON.parse(JSON.stringify(DEFAULT_LAYOUT.fields));
+  document.getElementById('layout-modal').classList.add('on');
+  renderLayoutEditor();
+}
+function closeLayoutBuilder(){
+  document.getElementById('layout-modal').classList.remove('on');
+  editingLayout = null;
+}
+
+function renderLayoutEditor(){
+  const L = editingLayout; if(!L) return;
+  document.getElementById('lb-name').value = L.name || '';
+  document.getElementById('lb-cols').value = L.cols || 1;
+  document.getElementById('lb-scale').value = L.scale || 1;
+  document.getElementById('lb-scale-v').textContent = (L.scale || 1).toFixed(1) + '倍';
+
+  // 使用中の項目（並べ替え・名前変更ができる）
+  const used = document.getElementById('lb-fields');
+  used.innerHTML = L.fields.map((f, i) =>
+    '<div class="lf' + (f.on ? '' : ' off') + '">' +
+      '<label class="lf-cb"><input type="checkbox" ' + (f.on ? 'checked' : '') +
+        ' onchange="lbToggle(' + i + ',this.checked)"></label>' +
+      '<input class="lf-in" value="' + esc(f.label) + '" onchange="lbRename(' + i + ',this.value)">' +
+      '<span class="lf-k">' + esc(fieldName(f.key)) + '</span>' +
+      '<div class="lf-a">' +
+        '<button class="b" onclick="lbMove(' + i + ',-1)">↑</button>' +
+        '<button class="b" onclick="lbMove(' + i + ',1)">↓</button>' +
+        '<button class="b" onclick="lbRemove(' + i + ')">✕</button>' +
+      '</div></div>').join('');
+
+  // 追加できる項目
+  const rest = FIELD_CATALOG.filter(c => !L.fields.some(f => f.key === c.key));
+  const add = document.getElementById('lb-add');
+  add.innerHTML = rest.length
+    ? rest.map(c => '<button class="chip" onclick="lbAdd(\'' + c.key + '\')">＋ ' + esc(c.label) + '</button>').join('')
+    : '<span style="font-size:11px;color:var(--ink-4)">すべて追加済みです</span>';
+
+  drawLayoutPreview();
+}
+function fieldName(k){ return (FIELD_CATALOG.find(c => c.key === k) || {}).label || k; }
+function lbToggle(i, v){ editingLayout.fields[i].on = v; renderLayoutEditor(); }
+function lbRename(i, v){ editingLayout.fields[i].label = v; drawLayoutPreview(); }
+function lbMove(i, d){
+  const a = editingLayout.fields, j = i + d;
+  if(j < 0 || j >= a.length) return;
+  [a[i], a[j]] = [a[j], a[i]];
+  renderLayoutEditor();
+}
+function lbRemove(i){ editingLayout.fields.splice(i, 1); renderLayoutEditor(); }
+function lbAdd(key){
+  editingLayout.fields.push({ key, label:fieldName(key), on:true });
+  renderLayoutEditor();
+}
+function lbSet(k, v){
+  editingLayout[k] = (k === 'cols') ? parseInt(v, 10) : parseFloat(v);
+  if(k === 'scale') document.getElementById('lb-scale-v').textContent = editingLayout.scale.toFixed(1) + '倍';
+  drawLayoutPreview();
+}
+
+// 見本を描いて確認する
+function drawLayoutPreview(){
+  const cv = document.getElementById('lb-canvas'); if(!cv) return;
+  const W = cv.width, H = cv.height;
+  const ctx = cv.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#8fa3b5'); g.addColorStop(1, '#5f7183');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(255,255,255,.25)';
+  ctx.font = '13px sans-serif';
+  ctx.fillText('（写真の見本）', 14, 22);
+
+  const sample = {
+    work_type:'基礎工事', kind:'配筋', title:'基礎配筋状況', place:'通り芯X3',
+    memo:'D13@200', values:{ witness:'佐藤', direction:'北面', material_name:'異形鉄筋',
+      material_spec:'SD295A D13', dimension:'@200', quantity:'42本', weather:'晴', temperature:'18℃' }
+  };
+  burnBoard(ctx, W, H, sample, { type:bbStyle.type, size:'lg', pos:'bl', x:null, y:null },
+            editingLayout, new Date());
+}
+
+async function saveLayout(){
+  const L = editingLayout; if(!L) return;
+  if(!myOrg){ toast('会社が設定されていません'); return; }
+  L.name = document.getElementById('lb-name').value.trim() || '無題のレイアウト';
+  const def = { name:L.name, cols:L.cols, scale:L.scale, keyWidth:L.keyWidth || 0.26, fields:L.fields };
+
+  if(L.id){
+    await sb.from('board_layouts').update({ name:L.name, definition:def }).eq('id', L.id);
+  }else{
+    const { data } = await sb.from('board_layouts')
+      .insert({ org_id:myOrg.id, name:L.name, definition:def, is_default:layouts.length === 0 })
+      .select().single();
+    if(data) L.id = data.id;
+  }
+  await loadLayouts();
+  currentLayout = def;
+  closeLayoutBuilder();
+  toast('レイアウトを保存しました');
+}
+
+async function useLayout(id){
+  const l = layouts.find(x => x.id === id); if(!l) return;
+  await sb.from('board_layouts').update({ is_default:false }).eq('org_id', myOrg.id);
+  await sb.from('board_layouts').update({ is_default:true }).eq('id', id);
+  currentLayout = l.definition;
+  await loadLayouts();
+  drawBoardPreview();
+  toast('「' + l.name + '」を使います');
+}
+async function removeLayout(id){
+  if(!confirm('このレイアウトを削除しますか？')) return;
+  await sb.from('board_layouts').delete().eq('id', id);
+  await loadLayouts();
+}
+
+function renderLayoutList(){
+  const el = document.getElementById('layout-list'); if(!el) return;
+  if(!layouts.length){
+    el.innerHTML = '<div style="font-size:11.5px;color:var(--ink-4);padding:8px">' +
+      '保存したレイアウトはありません。標準の形で表示されます。</div>';
+    return;
+  }
+  el.innerHTML = layouts.map(l =>
+    '<div class="pj-r' + (l.is_default ? ' now' : '') + '">' +
+    '<div style="flex:1;min-width:0" onclick="useLayout(\'' + l.id + '\')">' +
+      '<div class="nm">' + esc(l.name) + '</div>' +
+      '<div class="cd">' + ((l.definition?.fields || []).filter(f => f.on).length) + '項目 ・ ' +
+        (l.definition?.cols === 2 ? '2列' : '1列') + '</div></div>' +
+    (l.is_default ? '<span class="tg tg-b">使用中</span>' : '') +
+    '<button class="b" onclick="event.stopPropagation();openLayoutBuilder(\'' + l.id + '\')">編集</button>' +
+    '<button class="b" onclick="event.stopPropagation();removeLayout(\'' + l.id + '\')">削除</button>' +
+    '</div>').join('');
+}
+
+// ═══════════════════════════════════════════
+//  メンバー管理
+// ═══════════════════════════════════════════
+async function openMembers(){
+  if(!currentProjectId){ toast('先に工事を選んでください'); return; }
+  document.getElementById('member-modal').classList.add('on');
+  await renderMembers();
+}
+
+async function renderMembers(){
+  const el = document.getElementById('member-list');
+  el.innerHTML = '<div style="padding:8px;font-size:11.5px;color:var(--ink-4)">読み込んでいます...</div>';
+
+  const [pm, om] = await Promise.all([
+    sb.from('project_members').select('user_id, role, profiles(display_name)').eq('project_id', currentProjectId),
+    myOrg ? sb.from('org_members').select('user_id, role, profiles(display_name)').eq('org_id', myOrg.id)
+          : Promise.resolve({ data:[] })
+  ]);
+  const owners = new Set((om.data || []).filter(o => o.role === 'owner').map(o => o.user_id));
+
+  const rows = [];
+  (om.data || []).filter(o => o.role === 'owner').forEach(o => rows.push({
+    id:o.user_id, name:o.profiles?.display_name || '（名前未設定）', role:'owner', isOwner:true
+  }));
+  (pm.data || []).forEach(p => {
+    if(owners.has(p.user_id)) return;
+    rows.push({ id:p.user_id, name:p.profiles?.display_name || '（名前未設定）', role:p.role });
+  });
+
+  if(!rows.length){
+    el.innerHTML = '<div style="padding:8px;font-size:11.5px;color:var(--ink-4)">メンバーがいません</div>';
+    return;
+  }
+
+  const canEdit = canManage();
+  el.innerHTML = rows.map(r => {
+    const isMe = r.id === me?.id;
+    const sel = r.isOwner
+      ? '<span class="tg tg-b">会社管理者</span>'
+      : (canEdit && !isMe
+          ? '<select class="mem-sel" onchange="changeRole(\'' + r.id + '\',this.value)">' +
+            ['manager','shooter','viewer'].map(v =>
+              '<option value="' + v + '"' + (r.role === v ? ' selected' : '') + '>' + roleJa(v) + '</option>').join('') +
+            '</select>'
+          : '<span class="tg tg-g">' + roleJa(r.role) + '</span>');
+    return '<div class="mem">' +
+      '<div class="mem-i">' + esc((r.name || '?').slice(0, 1)) + '</div>' +
+      '<div style="flex:1;min-width:0"><div class="mem-n">' + esc(r.name) +
+        (isMe ? '<span style="color:var(--ink-4);font-size:10.5px"> （自分）</span>' : '') + '</div></div>' +
+      sel +
+      (canEdit && !r.isOwner && !isMe
+        ? '<button class="b" onclick="removeMember(\'' + r.id + '\')">外す</button>' : '') +
+      (myOrg?.my_role === 'owner' && !r.isOwner
+        ? '<button class="b" onclick="promoteOwner(\'' + r.id + '\')">管理者に</button>' : '') +
+      '</div>';
+  }).join('');
+}
+
+async function changeRole(uid, role){
+  const { error } = await sb.from('project_members')
+    .update({ role }).eq('project_id', currentProjectId).eq('user_id', uid);
+  if(error){ toast('変更できませんでした'); return; }
+  logAction('member.role', uid, { role });
+  toast('権限を変更しました');
+  renderMembers();
+}
+
+async function removeMember(uid){
+  if(!confirm('この方をこの工事から外しますか？')) return;
+  await sb.from('project_members').delete().eq('project_id', currentProjectId).eq('user_id', uid);
+  logAction('member.remove', uid);
+  renderMembers();
+}
+
+// 会社管理者を増やす（管理者は何人でも置ける）
+async function promoteOwner(uid){
+  if(myOrg?.my_role !== 'owner'){ toast('会社管理者だけが指定できます'); return; }
+  if(!confirm('この方を会社管理者にしますか？\n\n全工事の閲覧・編集と、メンバーの追加ができるようになります。')) return;
+  const { error } = await sb.from('org_members')
+    .upsert({ org_id:myOrg.id, user_id:uid, role:'owner' });
+  if(error){ toast('変更できませんでした：' + error.message); return; }
+  logAction('member.promote', uid);
+  toast('会社管理者にしました');
+  renderMembers();
+}
+
+
+// ═══════════════════════════════════════════
+//  黒板の管理
+// ═══════════════════════════════════════════
+let activeBoard = null;
+
+async function loadBoards(){
+  if(!currentProjectId) return;
+  const { data } = await sb.from('boards')
+    .select('*').eq('project_id', currentProjectId).order('sort_order');
+  boards = data || [];
+  renderBoards();
+}
+
+function renderBoards(){
+  const el = document.getElementById('board-list');
+  if(!el) return;
+  const cnt = document.getElementById('ct-board');
+  if(cnt) cnt.textContent = boards.length;
+
+  if(!boards.length){
+    el.innerHTML = '<div class="blank"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M7 10h10M7 14h6"/></svg>' +
+      '<p>黒板がまだありません</p><span>撮影前に黒板を作っておくと、現場では選ぶだけで撮れます</span></div>';
+    return;
+  }
+
+  const groups = {};
+  boards.forEach(b => { (groups[b.work_type || '未分類'] ||= []).push(b); });
+
+  let h = '';
+  Object.keys(groups).forEach(wt => {
+    const list = groups[wt];
+    const shot = list.filter(b => (b.shot_count || 0) > 0).length;
+    h += '<div class="gsec"><div class="gsec-h">' +
+      '<svg class="cv" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>' +
+      '<span class="nm">' + esc(wt) + '</span>' +
+      '<span class="st"><span>黒板 <b>' + list.length + '</b></span>' +
+      '<span>撮影済 <b>' + shot + '</b></span></span></div>' +
+      '<div class="bd-grid">';
+    list.forEach(b => {
+      const done = (b.shot_count || 0) > 0;
+      h += '<div class="bd' + (done ? ' done' : '') + '" onclick="startShoot(\'' + b.id + '\')">' +
+        '<div class="bd-h"><span class="bd-k">' + esc(b.kind || '—') + '</span>' +
+        (done ? '<span class="tg tg-o">' + b.shot_count + '枚</span>'
+              : '<span class="tg tg-w">未撮影</span>') + '</div>' +
+        '<div class="bd-t">' + esc(b.title || '（撮影内容なし）') + '</div>' +
+        (b.place ? '<div class="bd-p">' + esc(b.place) + '</div>' : '') +
+        '<div class="bd-a">' +
+          '<button class="b" onclick="event.stopPropagation();editBoard(\'' + b.id + '\')">編集</button>' +
+          '<button class="b" onclick="event.stopPropagation();removeBoard(\'' + b.id + '\')">削除</button>' +
+        '</div></div>';
+    });
+    h += '</div></div>';
+  });
+  el.innerHTML = h;
+}
+
+// 工種テンプレートから黒板をまとめて作る
+async function generateBoards(){
+  if(!canWrite()){ toast('作成する権限がありません'); return; }
+  if(!templates.length){ toast('先に工種テンプレートを作ってください'); showPage('template'); return; }
+  if(!confirm('工種テンプレートの組み合わせから黒板をまとめて作ります。よろしいですか？')) return;
+
+  const rows = [];
+  let i = boards.length;
+  templates.forEach(t => {
+    const kinds = t.kinds.length ? t.kinds : [''];
+    kinds.forEach(k => {
+      if(boards.some(b => b.work_type === t.wt && b.kind === k)) return;
+      rows.push({
+        project_id: currentProjectId,
+        phase: t.phase || 'during', category: t.category || 'progress',
+        work_type: t.wt, kind: k, title: k || t.wt,
+        sort_order: i++
+      });
+    });
+  });
+  if(!rows.length){ toast('新しく作る黒板はありませんでした'); return; }
+
+  const { error } = await sb.from('boards').insert(rows);
+  if(error){ toast('作成に失敗しました'); console.error(error); return; }
+  await loadBoards();
+  logAction('board.generate', null, { count: rows.length });
+  toast(rows.length + '枚の黒板を作りました');
+}
+
+// 別の工事から黒板をコピーする
+async function copyBoardsFrom(){
+  if(!canWrite()){ toast('作成する権限がありません'); return; }
+  const { data } = await sb.from('v_project_summary')
+    .select('id,name,code').neq('id', currentProjectId)
+    .order('updated_at', { ascending:false }).limit(30);
+  if(!data || !data.length){ toast('コピー元になる工事がありません'); return; }
+
+  const el = document.getElementById('copy-src');
+  el.innerHTML = data.map(p =>
+    '<div class="pj-r" onclick="doCopyBoards(\'' + p.id + '\')">' +
+    '<div style="flex:1;min-width:0"><div class="nm">' + esc(p.name || '（無題）') + '</div>' +
+    '<div class="cd">' + esc(p.code) + '</div></div></div>').join('');
+  document.getElementById('copy-modal').classList.add('on');
+}
+
+async function doCopyBoards(srcId){
+  document.getElementById('copy-modal').classList.remove('on');
+  const { data: src } = await sb.from('boards')
+    .select('*').eq('project_id', srcId).order('sort_order');
+  if(!src || !src.length){ toast('コピー元に黒板がありません'); return; }
+
+  let i = boards.length;
+  const rows = src
+    .filter(s => !boards.some(b => b.work_type === s.work_type && b.kind === s.kind && b.title === s.title))
+    .map(s => ({
+      project_id: currentProjectId,
+      phase: s.phase, category: s.category,
+      work_type: s.work_type, kind: s.kind,
+      title: s.title, place: s.place, values: s.values,
+      sort_order: i++
+    }));
+  if(!rows.length){ toast('すべて既にあります'); return; }
+
+  const { error } = await sb.from('boards').insert(rows);
+  if(error){ toast('コピーに失敗しました'); return; }
+  await loadBoards();
+  toast(rows.length + '枚の黒板をコピーしました');
+}
+
+async function addBoard(){
+  if(!canWrite()){ toast('作成する権限がありません'); return; }
+  const wt = prompt('工種'); if(!wt) return;
+  const kind = prompt('種別') || '';
+  const title = prompt('撮影内容') || kind || wt;
+  const place = prompt('場所（任意）') || '';
+  const { error } = await sb.from('boards').insert({
+    project_id: currentProjectId, work_type: wt, kind, title, place,
+    sort_order: boards.length
+  });
+  if(error){ toast('追加に失敗しました'); return; }
+  await loadBoards();
+}
+
+async function editBoard(id){
+  const b = boards.find(x => x.id === id); if(!b) return;
+  if(!canWrite()){ toast('編集する権限がありません'); return; }
+  const title = prompt('撮影内容', b.title || ''); if(title === null) return;
+  const place = prompt('場所', b.place || ''); if(place === null) return;
+  await sb.from('boards').update({ title, place }).eq('id', id);
+  b.title = title; b.place = place;
+  renderBoards();
+}
+
+async function removeBoard(id){
+  if(!canWrite()){ toast('削除する権限がありません'); return; }
+  if(!confirm('この黒板を削除しますか？（撮影済みの写真は残ります）')) return;
+  await sb.from('boards').delete().eq('id', id);
+  boards = boards.filter(b => b.id !== id);
+  renderBoards();
+}
+
+// ═══════════════════════════════════════════
+//  撮影モード
+// ═══════════════════════════════════════════
+let camStream = null, shootCount = 0;
+
+async function startShoot(boardId){
+  if(!canWrite()){ toast('この工事には写真を追加できません'); return; }
+  activeBoard = boards.find(b => b.id === boardId) || null;
+  if(!activeBoard){ toast('黒板が見つかりません'); return; }
+
+  shootCount = 0;
+  document.getElementById('shoot').classList.add('on');
+  updateShootHeader();
+  drawBoardPreview();
+  syncModeButtons();
+  syncStyleButtons();
+  startWatchPos();
+  if(camMode === 'app') await startCamera();
+}
+
+function stopShoot(){
+  stopCamera(); stopWatchPos(); pendingShot = null;
+  document.getElementById('shot-preview').classList.remove('on');
+  document.getElementById('shoot').classList.remove('on');
+  activeBoard = null;
+  renderBoards(); renderAll();
+}
+
+function updateShootHeader(){
+  const b = activeBoard; if(!b) return;
+  document.getElementById('sh-title').textContent = b.title || b.kind || b.work_type;
+  document.getElementById('sh-sub').textContent =
+    (b.work_type || '') + (b.kind ? ' / ' + b.kind : '') + (b.place ? ' / ' + b.place : '');
+  document.getElementById('sh-count').textContent =
+    shootCount ? 'この黒板で ' + shootCount + '枚' : '';
+}
+
+// プレビュー上の黒板（DOMで描く）
+function drawBoardPreview(){
+  const el = document.getElementById('bb-preview');
+  if(!el || !activeBoard) return;
+  const th = BB_THEME[bbStyle.type] || BB_THEME.green;
+  const lines = boardLines(activeBoard, currentLayout);
+  const wPct = { sm:30, md:40, lg:52 }[bbStyle.size] || 40;
+
+  el.style.width = wPct + '%';
+  el.style.background = th.bg;
+  el.style.color = th.fg;
+  el.style.borderColor = th.line;
+  el.style.fontSize = (wPct * 0.048) + 'vw';
+
+  if(bbStyle.x != null && bbStyle.y != null){
+    el.style.left = (bbStyle.x * 100) + '%';
+    el.style.top  = (bbStyle.y * 100) + '%';
+    el.style.right = 'auto'; el.style.bottom = 'auto';
+  }else{
+    const p = bbStyle.pos || 'bl';
+    el.style.left   = p.includes('l') ? '2%' : 'auto';
+    el.style.right  = p.includes('r') ? '2%' : 'auto';
+    el.style.top    = p.includes('t') ? '2%' : 'auto';
+    el.style.bottom = p.includes('b') ? '2%' : 'auto';
+  }
+
+  el.innerHTML = lines.map((r, i) =>
+    '<div class="bbp-l"' + (i ? ' style="border-top:1px solid ' + th.line + '"' : '') + '>' +
+    '<span style="color:' + th.key + '">' + esc(r[0]) + '</span>' +
+    '<b>' + esc(String(r[1] || '')) + '</b></div>').join('');
+}
+
+function setBbType(t){ bbStyle.type = t; saveBbStyle(); syncStyleButtons(); drawBoardPreview(); }
+function setBbSize(s){ bbStyle.size = s; saveBbStyle(); syncStyleButtons(); drawBoardPreview(); }
+function setBbPos(p){ bbStyle.pos = p; bbStyle.x = null; bbStyle.y = null; saveBbStyle(); syncStyleButtons(); drawBoardPreview(); }
+
+function syncStyleButtons(){
+  document.querySelectorAll('#sh-style [data-bt]').forEach(b =>
+    b.classList.toggle('on', b.dataset.bt === bbStyle.type));
+  document.querySelectorAll('#sh-style [data-bs]').forEach(b =>
+    b.classList.toggle('on', b.dataset.bs === bbStyle.size));
+  document.querySelectorAll('#sh-style [data-bp]').forEach(b =>
+    b.classList.toggle('on', b.dataset.bp === bbStyle.pos && bbStyle.x == null));
+}
+
+// 黒板を指でドラッグして動かす
+function initBoardDrag(){
+  const el = document.getElementById('bb-preview');
+  const wrap = document.getElementById('cam-wrap');
+  if(!el || !wrap) return;
+  let dragging = false, dx = 0, dy = 0;
+
+  const down = e => {
+    dragging = true;
+    const p = e.touches ? e.touches[0] : e;
+    const r = el.getBoundingClientRect();
+    dx = p.clientX - r.left; dy = p.clientY - r.top;
+    e.preventDefault();
+  };
+  const move = e => {
+    if(!dragging) return;
+    const p = e.touches ? e.touches[0] : e;
+    const w = wrap.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    let x = (p.clientX - dx - w.left) / w.width;
+    let y = (p.clientY - dy - w.top) / w.height;
+    x = Math.max(0, Math.min(1 - r.width / w.width, x));
+    y = Math.max(0, Math.min(1 - r.height / w.height, y));
+    bbStyle.x = x; bbStyle.y = y;
+    el.style.left = (x * 100) + '%'; el.style.top = (y * 100) + '%';
+    el.style.right = 'auto'; el.style.bottom = 'auto';
+    e.preventDefault();
+  };
+  const up = () => { if(dragging){ dragging = false; saveBbStyle(); syncStyleButtons(); } };
+
+  el.addEventListener('mousedown', down);
+  el.addEventListener('touchstart', down, { passive:false });
+  window.addEventListener('mousemove', move);
+  window.addEventListener('touchmove', move, { passive:false });
+  window.addEventListener('mouseup', up);
+  window.addEventListener('touchend', up);
+}
+
+// シャッター
+// 撮影した写真を保存する（連続撮影のため画面は閉じない）
+async function saveShot(blob, srcFile, at){
+  const st = document.getElementById('sh-status');
+  st.textContent = '保存しています...';
+  try{
+    const stamped = await embedHash(blob);
+    const file = new File([stamped.blob], 'shot.jpg', { type:'image/jpeg' });
+    await uploadOne(file, {
+      wt: activeBoard.work_type, kind: activeBoard.kind,
+      title: activeBoard.title, place: activeBoard.place,
+      phase: activeBoard.phase, category: activeBoard.category,
+      boardId: activeBoard.id, hash: stamped.hash,
+      gpsFrom: srcFile || null,
+      shotAt: at || new Date(),
+      pos: lastPos
+    });
+    shootCount++;
+    activeBoard.shot_count = (activeBoard.shot_count || 0) + 1;
+    updateShootHeader();
+    st.textContent = '保存しました';
+    const thumb = document.getElementById('sh-last');
+    thumb.src = URL.createObjectURL(stamped.blob);
+    thumb.style.display = '';
+    setTimeout(() => { if(st.textContent === '保存しました') st.textContent = ''; }, 1400);
+  }catch(e){
+    console.error(e);
+    st.textContent = '保存できませんでした';
+  }
+}
+
+function flash(){
+  const f = document.getElementById('sh-flash');
+  f.classList.add('on');
+  setTimeout(() => f.classList.remove('on'), 140);
+}
+
+// 次の未撮影の黒板へ
+function nextBoard(dir){
+  if(!boards.length) return;
+  const i = boards.findIndex(b => b.id === activeBoard?.id);
+  const n = boards[(i + dir + boards.length) % boards.length];
+  if(n){ activeBoard = n; updateShootHeader(); drawBoardPreview(); }
+}
+
+
+// ═══════════════════════════════════════════
+//  v13 データ層（新スキーマ対応）
+// ═══════════════════════════════════════════
+
+// ── 起動時：どの工事を開くか決める ──
+async function bootProject(){
+  const params = new URLSearchParams(location.search);
+
+  // 1. URLに共有コード
+  const code = params.get('code');
+  if(code){
+    const { data } = await sb.from('projects')
+      .select('id').eq('share_code', code.toUpperCase()).maybeSingle();
+    if(data){ await openProject(data.id); return; }
+  }
+  // 2. 前回開いた工事
+  const last = localStorage.getItem('lastProject');
+  if(last){
+    // RLSにより、権限がなければ null が返る
+    const { data } = await sb.from('projects').select('id').eq('id', last).maybeSingle();
+    if(data){ await openProject(last); return; }
+    localStorage.removeItem('lastProject');
+  }
+  // 3. 工事一覧を出す
+  showProjectPicker();
+}
+
+// ── 工事を開く ──
+async function openProject(pid){
+  if(!sbReady) return;
+  setConnStatus('読み込み中', 'sync');
+  currentProjectId = pid;
+  localStorage.setItem('lastProject', pid);
+
+  const { data: pj, error } = await sb.from('projects')
+    .select('*, buildings(*)').eq('id', pid).maybeSingle();
+  if(error || !pj){
+    toast('この工事を開く権限がありません');
+    localStorage.removeItem('lastProject');
+    setConnStatus('接続済み','ok');
+    showProjectPicker(); return;
+  }
+
+  currentProject  = pj;
+  currentShareCode = pj.share_code;
+  myRole = await fetchMyRole(pid);
+
+  project = {
+    name: pj.name||'', site: pj.buildings?.address||'',
+    start: pj.start_date||'', end: pj.end_date||'',
+    client: pj.client||'', builder: pj.builder||'',
+    rep: pj.rep||'', overview: pj.overview||''
+  };
+  coverOpts = { subtitle: pj.cover_sub||'', logoText: pj.cover_logo||'' };
+
+  // 工種テンプレート
+  const { data: tpls } = await sb.from('templates')
+    .select('*').eq('project_id', pid).order('sort_order');
+  templates = (tpls||[]).map(t=>({
+    id:t.id, wt:t.work_type, kinds:t.kinds||[],
+    phase:t.phase, category:t.category, required:t.required_count||0
+  }));
+
+  // 事前作成した黒板
+  const { data: bds } = await sb.from('boards')
+    .select('*').eq('project_id', pid).order('sort_order');
+  boards = bds||[];
+  renderBoards();
+
+  // 写真
+  const { data: phs } = await sb.from('photos')
+    .select('*').eq('project_id', pid).is('deleted_at', null).order('sort_order');
+  photos = (phs||[]).map(mapPhotoRow);
+
+  // 署名付きURLをまとめて取得
+  await attachUrls(photos);
+
+  fillProjectForm();
+  applyRoleUI();
+  renderAll();
+  setConnStatus('接続済み', 'ok');
+  pushRecent(pid, pj.name);
+}
+
+let currentProject = null;
+let boards = [];
+
+// DBの行 → 画面用オブジェクト
+function mapPhotoRow(p){
+  return {
+    id: p.id, projectId: p.project_id, boardId: p.board_id,
+    no: p.photo_no,
+    pathOrig: p.path_orig, pathLedger: p.path_ledger, pathThumb: p.path_thumb,
+    src:'', thumb:'',
+    phase: p.phase, category: p.category,
+    wt: p.work_type||'', kind: p.kind||'',
+    title: p.title||'', place: p.place||'', memo: p.memo||'', comment: p.comment||'',
+    direction: p.direction||'', witness: p.witness||'',
+    materialName: p.material_name||'', materialSpec: p.material_spec||'',
+    materialMaker: p.material_maker||'',
+    dimension: p.dimension||'', quantity: p.quantity||'',
+    weather: p.weather||'', temperature: p.temperature||'',
+    custom: p.custom_fields||{},
+    status: p.status, locked: p.locked, inLedger: p.in_ledger, isCover: p.is_cover,
+    hash: p.hash||'', annots: p.annots||[], markers: p.markers||[],
+    exifDate: p.exif_date ? String(p.exif_date).slice(0,16).replace('T',' ') : '',
+    gps: (p.gps_lat && p.gps_lng) ? { lat:p.gps_lat, lng:p.gps_lng } : null,
+    shooterId: p.shooter_id,
+    order: Number(p.sort_order)||0,
+    ts: new Date(p.created_at).getTime(),
+    bytes: p.bytes_total||0
+  };
+}
+
+// 署名付きURLを一括で付ける
+async function attachUrls(list){
+  if(!list.length) return;
+  const thumbs = list.map(p=>p.pathThumb).filter(Boolean);
+  const ledgers = list.map(p=>p.pathLedger).filter(Boolean);
+  const [tm, lm] = await Promise.all([ signedUrls(thumbs), signedUrls(ledgers) ]);
+  list.forEach(p=>{
+    p.thumb = tm[p.pathThumb] || '';
+    p.src   = lm[p.pathLedger] || p.thumb;
+  });
+}
+
+// ── 自分の権限を取る ──
+async function fetchMyRole(pid){
+  const { data } = await sb.rpc('auth_project_role', { p: pid });
+  return data || null;
+}
+function canWrite(){
+  return ['owner','manager','shooter'].includes(myRole)
+      && ['preparing','active'].includes(currentProject?.status);
+}
+function canManage(){
+  return ['owner','manager'].includes(myRole);
+}
+function canEditPhoto(p){
+  if(!p || p.locked) return false;
+  if(!canWrite()) return false;
+  return canManage() || p.shooterId === me?.id;
+}
+
+// ── 権限に応じてUIを出し分ける ──
+function applyRoleUI(){
+  const ro = !canWrite();
+  const banner = document.getElementById('ro-banner');
+  if(banner){
+    banner.classList.toggle('on', ro);
+    const msg = document.getElementById('ro-msg');
+    if(msg){
+      if(currentProject && !['preparing','active'].includes(currentProject.status))
+        msg.textContent = 'この工事は「' + statusJa(currentProject.status) + '」のため、変更できません';
+      else if(myRole === 'viewer')
+        msg.textContent = '閲覧のみの権限です。写真の追加や編集はできません';
+      else msg.textContent = '編集できません';
+    }
+  }
+  ['btn-add','drop'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.display = ro ? 'none' : '';
+  });
+  const rt = document.getElementById('role-tag');
+  if(rt){
+    rt.textContent = roleJa(myRole);
+    rt.className = 'role-tag' + (canWrite() ? '' : ' ro');
+  }
+}
+function roleJa(r){
+  return { owner:'会社管理者', manager:'現場責任者', shooter:'撮影者', viewer:'閲覧のみ' }[r] || '—';
+}
+function statusJa(s){
+  return { preparing:'準備中', active:'工期中', completed:'完了', suspended:'中断' }[s] || s;
+}
+
+// ── 工事を作る ──
+async function createProject(){
+  const name = document.getElementById('new-proj-name').value.trim();
+  if(!name){ toast('工事名を入力してください'); return; }
+  if(!myOrg){ toast('会社が設定されていません'); return; }
+
+  setConnStatus('作成中', 'sync');
+  const code = await nextProjectCode();
+  const { data, error } = await sb.from('projects').insert({
+    org_id: myOrg.id, code, name,
+    status: 'active',
+    share_code: genShareCode(),
+    created_by: me.id
+  }).select().single();
+
+  if(error){ console.error(error); toast('作成に失敗しました：' + error.message); setConnStatus('エラー','err'); return; }
+
+  await sb.from('project_members')
+    .insert({ project_id: data.id, user_id: me.id, role: 'manager' });
+  await loadDefaultTemplates(data.id);
+
+  closeProjectPicker();
+  await openProject(data.id);
+  toast('工事を作成しました');
+  showShareCode();
+}
+
+// 工事コードの自動採番（会社コード-年度-連番）
+async function nextProjectCode(){
+  const y = new Date().getFullYear();
+  const prefix = (myOrg.slug||'PJ').split('-')[0].slice(0,4).toUpperCase() + '-' + y + '-';
+  const { data } = await sb.from('projects')
+    .select('code').eq('org_id', myOrg.id).like('code', prefix + '%')
+    .order('code', { ascending:false }).limit(1);
+  let n = 1;
+  if(data && data.length){
+    const m = String(data[0].code).match(/(\d+)$/);
+    if(m) n = parseInt(m[1], 10) + 1;
+  }
+  return prefix + String(n).padStart(4, '0');
+}
+
+// ── 標準の工種テンプレート ──
+async function loadDefaultTemplates(pid){
+  const defs = [
+    ['before','progress','着工前・仮設',['着工前状況','仮設工事']],
+    ['during','progress','地盤・地業',['地盤調査','地業工事']],
+    ['during','progress','基礎工事',['配筋','型枠','コンクリート打設']],
+    ['during','progress','構造躯体・金物',['柱','梁','金物取付']],
+    ['during','progress','屋根・防水',['屋根下地','防水工事']],
+    ['during','material','外装・断熱',['外壁','断熱材']],
+    ['during','progress','設備配管・配線',['配管','配線']],
+    ['during','progress','内装仕上',['床','壁','天井']],
+    ['after','progress','完成・引渡し',['完成写真','引渡し']],
+  ];
+  const rows = defs.map((d,i)=>({
+    project_id: pid, phase:d[0], category:d[1],
+    work_type:d[2], kinds:d[3], sort_order:i
+  }));
+  const { data } = await sb.from('templates').insert(rows).select();
+  templates = (data||[]).map(t=>({
+    id:t.id, wt:t.work_type, kinds:t.kinds||[],
+    phase:t.phase, category:t.category, required:0
+  }));
+}
+
+// ── 工事一覧 ──
+async function showProjectPicker(){
+  document.getElementById('proj-picker').classList.add('on');
+  const list = document.getElementById('proj-list');
+  if(!sbReady){ list.innerHTML = '<div style="padding:8px;font-size:11.5px;color:var(--stop)">未接続です</div>'; return; }
+
+  const { data } = await sb.from('v_project_summary')
+    .select('*').order('updated_at', { ascending:false }).limit(40);
+
+  if(!data || !data.length){
+    list.innerHTML = '<div style="padding:8px;font-size:11.5px;color:var(--ink-4)">まだ工事がありません</div>';
+    return;
+  }
+  const active = data.filter(p=>['preparing','active'].includes(p.status));
+  const done   = data.filter(p=>!['preparing','active'].includes(p.status));
+
+  const row = p => '<div class="pj-r' + (p.id===currentProjectId?' now':'') + '" ' +
+      'onclick="openProject(\'' + p.id + '\');closeProjectPicker()">' +
+      '<div style="flex:1;min-width:0">' +
+        '<div class="nm">' + esc(p.name||'（無題）') + '</div>' +
+        '<div class="cd">' + esc(p.code) +
+          (p.building_name ? ' ・ ' + esc(p.building_name) : '') + '</div>' +
+      '</div>' +
+      '<span class="tg ' + (p.status==='active'?'tg-o':'tg-g') + '">' + statusJa(p.status) + '</span>' +
+      '<span class="tg tg-g">' + (p.photo_count||0) + '枚</span>' +
+    '</div>';
+
+  list.innerHTML =
+    (active.length ? '<div class="box-t" style="border:none;padding:0;margin:6px 0 4px;font-size:10px;color:var(--ink-4)">工期中</div>' + active.map(row).join('') : '') +
+    (done.length   ? '<div class="box-t" style="border:none;padding:0;margin:10px 0 4px;font-size:10px;color:var(--ink-4)">完了・中断</div>' + done.map(row).join('') : '');
+}
+
+// ── 工事情報の保存 ──
+async function saveProj(){
+  if(!canManage()){ toast('変更する権限がありません'); return; }
+  project = {
+    name:$('#p-name').value, site:$('#p-site').value,
+    start:$('#p-start').value, end:$('#p-end').value,
+    client:$('#p-client').value, builder:$('#p-builder').value,
+    rep:$('#p-rep').value, overview:$('#p-overview').value
+  };
+  const status = document.getElementById('p-status')?.value || currentProject.status;
+
+  const { error } = await sb.from('projects').update({
+    name: project.name,
+    start_date: project.start || null,
+    end_date: project.end || null,
+    client: project.client, builder: project.builder,
+    rep: project.rep, overview: project.overview,
+    cover_sub: coverOpts.subtitle, cover_logo: coverOpts.logoText,
+    status
+  }).eq('id', currentProjectId);
+
+  if(error){ toast('保存に失敗しました'); console.error(error); return; }
+  currentProject.status = status;
+  applyRoleUI();
+  renderSidebar();
+  logAction('project.update');
+  toast('工事情報を保存しました');
+}
+
+function fillProjectForm(){
+  const set = (id,v)=>{ const e=document.getElementById(id); if(e) e.value = v||''; };
+  set('p-name', project.name);   set('p-site', project.site);
+  set('p-start', project.start); set('p-end', project.end);
+  set('p-client', project.client); set('p-builder', project.builder);
+  set('p-rep', project.rep);     set('p-overview', project.overview);
+  set('cover-sub', coverOpts.subtitle); set('cover-logo', coverOpts.logoText);
+  const st = document.getElementById('p-status');
+  if(st && currentProject) st.value = currentProject.status;
+}
+
+// ═══════════════════════════════════════════
+//  写真のアップロード（3段階生成）
+// ═══════════════════════════════════════════
+async function addFiles(files){
+  if(!currentProjectId){ toast('先に工事を選んでください'); showProjectPicker(); return; }
+  if(!canWrite()){ toast('この工事には写真を追加できません'); return; }
+  if(!templates.length){ toast('先に工種テンプレートを作ってください'); showPage('template'); return; }
+
+  const list = [...files].filter(f=>f.type.startsWith('image/'));
+  if(!list.length) return;
+
+  const def = activeBoard || templates[0];
+  let done = 0, ok = 0;
+  upProgress(0, list.length);
+
+  for(const f of list){
+    try{
+      await uploadOne(f, def);
+      ok++;
+    }catch(e){ console.error('アップロード失敗', f.name, e); }
+    done++;
+    upProgress(done, list.length);
+    if(done % 3 === 0) renderAll();
+  }
+  renderAll();
+  if(ok) showClassified(ok, def.wt || def.work_type || '未分類');
+  if(ok < list.length) toast((list.length-ok) + '枚の保存に失敗しました');
+  else toast(ok + '枚を追加しました');
+  refreshQuota();
+}
+
+async function uploadOne(file, def){
+  const photoId = crypto.randomUUID();
+  const ym = new Date().toISOString().slice(0,7);
+  const base = myOrg.id + '/' + currentProjectId + '/' + ym + '/' + photoId;
+
+  // 改ざん検知の照合コード（撮影モードで埋め込み済みならそれを使う）
+  let hash = def.hash;
+  if(!hash){
+    const buf = await file.arrayBuffer();
+    hash = await sha256(buf);
+  }
+  // 位置情報と撮影日時
+  const exif = await readExifFull(def.gpsFrom || file);
+  if(def.shotAt && !exif.dateTime) exif.dateTime = def.shotAt.toISOString();
+  if(def.pos && !exif.gps) exif.gps = { lat:def.pos.lat, lng:def.pos.lng };
+
+  // 縮小
+  const bmp    = await orientedBitmap(file);
+  const ledger = await resizeToBlob(bmp, IMG_SIZES.ledger.w, IMG_SIZES.ledger.h, IMG_SIZES.ledger.q);
+  const thumb  = await resizeToBlob(bmp, IMG_SIZES.thumb.w,  IMG_SIZES.thumb.h,  IMG_SIZES.thumb.q);
+  if(bmp.close) bmp.close();
+
+  const paths = {
+    ledger: base + '_ledger.jpg',
+    thumb:  base + '_thumb.jpg',
+    orig:   myOrg.keep_original ? base + '_orig.jpg' : null
+  };
+
+  const ups = [
+    sb.storage.from('photos').upload(paths.ledger, ledger, { contentType:'image/jpeg' }),
+    sb.storage.from('photos').upload(paths.thumb,  thumb,  { contentType:'image/jpeg' })
+  ];
+  if(paths.orig)
+    ups.push(sb.storage.from('photos').upload(paths.orig, file, { contentType: file.type }));
+
+  const results = await Promise.all(ups);
+  const failed = results.find(r=>r.error);
+  if(failed) throw failed.error;
+
+  const bytes = ledger.size + thumb.size + (paths.orig ? file.size : 0);
+
+  const { data, error } = await sb.from('photos').insert({
+    id: photoId,
+    project_id: currentProjectId,
+    board_id: def.boardId || activeBoard?.id || null,
+    path_orig: paths.orig, path_ledger: paths.ledger, path_thumb: paths.thumb,
+    bytes_total: bytes,
+    phase: def.phase || 'during',
+    category: def.category || 'progress',
+    work_type: def.wt || def.work_type || '',
+    kind: def.kind || (def.kinds && def.kinds[0]) || '',
+    title: def.title || '', place: def.place || '',
+    hash, exif_date: exif.dateTime || null,
+    gps_lat: exif.gps?.lat ?? null, gps_lng: exif.gps?.lng ?? null,
+    shooter_id: me.id,
+    sort_order: Date.now()
+  }).select().single();
+
+  if(error) throw error;
+
+  const row = mapPhotoRow(data);
+  await attachUrls([row]);
+  photos.push(row);
+
+  const bid = def.boardId || activeBoard?.id;
+  if(bid){
+    const b = boards.find(x=>x.id===bid);
+    const n = ((b?.shot_count)||0) + (def.boardId ? 0 : 1);
+    if(!def.boardId && b) b.shot_count = n;
+    sb.from('boards').update({ shot_count: (b?.shot_count)||n }).eq('id', bid).then(()=>{});
+  }
+  logAction('photo.create', data.id);
+  return row;
+}
+
+async function refreshQuota(){
+  if(!myOrg) return;
+  const { data } = await sb.from('organizations')
+    .select('storage_used, plan').eq('id', myOrg.id).maybeSingle();
+  if(data){ myOrg.storage_used = data.storage_used; myOrg.plan = data.plan; renderQuota(); }
+}
+
+// ── EXIF（撮影日時＋GPS）──
+async function readExifFull(file){
+  const buf = await file.slice(0, 262144).arrayBuffer();
+  const view = new DataView(buf);
+  const out = { dateTime:'', gps:null };
+  try{
+    if(view.getUint16(0,false) !== 0xFFD8) return out;
+    let off = 2;
+    while(off < view.byteLength - 4){
+      const marker = view.getUint16(off, false); off += 2;
+      if(marker === 0xFFE1){
+        const len = view.getUint16(off, false);
+        if(view.getUint32(off+2, false) === 0x45786966){
+          const tiff = off + 8;
+          const le = view.getUint16(tiff, false) === 0x4949;
+          const ifd0 = tiff + view.getUint32(tiff+4, le);
+          const parsed = readIFD(view, tiff, ifd0, le);
+          if(parsed.exifOff) Object.assign(parsed, readIFD(view, tiff, tiff + parsed.exifOff, le));
+          if(parsed.gpsOff)  parsed.gps = readGPS(view, tiff, tiff + parsed.gpsOff, le);
+          out.dateTime = parsed.dateTime || '';
+          out.gps = parsed.gps || null;
+        }
+        break;
+      }
+      if((marker & 0xFF00) !== 0xFF00) break;
+      off += view.getUint16(off, false);
+    }
+  }catch(e){ /* EXIFが無い写真は無視 */ }
+  return out;
+}
+
+function readIFD(view, tiff, ifd, le){
+  const res = {};
+  const n = view.getUint16(ifd, le);
+  for(let i=0; i<n; i++){
+    const e = ifd + 2 + i*12;
+    const tag = view.getUint16(e, le);
+    if(tag === 0x8769) res.exifOff = view.getUint32(e+8, le);
+    if(tag === 0x8825) res.gpsOff  = view.getUint32(e+8, le);
+    if(tag === 0x9003 || tag === 0x0132){
+      const cnt = view.getUint32(e+4, le);
+      const p = cnt > 4 ? tiff + view.getUint32(e+8, le) : e+8;
+      let s = '';
+      for(let k=0; k<cnt-1; k++) s += String.fromCharCode(view.getUint8(p+k));
+      const m = s.match(/(\d{4}):(\d{2}):(\d{2})[ T](\d{2}:\d{2}:\d{2})/);
+      if(m && !res.dateTime) res.dateTime = m[1]+'-'+m[2]+'-'+m[3]+'T'+m[4];
+    }
+  }
+  return res;
+}
+
+function readGPS(view, tiff, ifd, le){
+  const g = {};
+  const n = view.getUint16(ifd, le);
+  const rat = (p)=> view.getUint32(p, le) / (view.getUint32(p+4, le) || 1);
+  for(let i=0;i<n;i++){
+    const e = ifd + 2 + i*12;
+    const tag = view.getUint16(e, le);
+    const p = tiff + view.getUint32(e+8, le);
+    if(tag === 1) g.latRef = String.fromCharCode(view.getUint8(e+8));
+    if(tag === 3) g.lngRef = String.fromCharCode(view.getUint8(e+8));
+    if(tag === 2) g.lat = rat(p) + rat(p+8)/60 + rat(p+16)/3600;
+    if(tag === 4) g.lng = rat(p) + rat(p+8)/60 + rat(p+16)/3600;
+  }
+  if(g.lat == null || g.lng == null) return null;
+  return {
+    lat: g.latRef === 'S' ? -g.lat : g.lat,
+    lng: g.lngRef === 'W' ? -g.lng : g.lng
+  };
+}
+
+// ═══════════════════════════════════════════
+//  写真の更新・削除
+// ═══════════════════════════════════════════
+const dbField = {
+  wt:'work_type', kind:'kind', title:'title', place:'place', memo:'memo',
+  comment:'comment', direction:'direction', witness:'witness',
+  materialName:'material_name', materialSpec:'material_spec',
+  materialMaker:'material_maker', dimension:'dimension', quantity:'quantity',
+  weather:'weather', temperature:'temperature',
+  inLedger:'in_ledger', locked:'locked', phase:'phase', category:'category',
+  annots:'annots', markers:'markers', order:'sort_order', isCover:'is_cover'
+};
+
+async function syncPhoto(p, keys){
+  if(!sbReady || !p.id) return;
+  const patch = {};
+  (keys || Object.keys(dbField)).forEach(k=>{
+    if(dbField[k] !== undefined && p[k] !== undefined) patch[dbField[k]] = p[k];
+  });
+  const { error } = await sb.from('photos').update(patch).eq('id', p.id);
+  if(error){
+    console.error(error);
+    toast('保存できませんでした：' + (error.message||''));
+  }
+}
+
+// 論理削除（ゴミ箱へ）
+async function deletePhotoRemote(p){
+  if(!sbReady || !p.id) return;
+  const { error } = await sb.from('photos')
+    .update({ deleted_at: new Date().toISOString() }).eq('id', p.id);
+  if(error) console.error(error);
+  else logAction('photo.delete', p.id);
+}
+
+// ── 確定（ロック）──
+async function lockPhoto(id){
+  if(!canManage()){ toast('確定できるのは現場責任者以上です'); return; }
+  const p = photos.find(x=>x.id===id); if(!p) return;
+  p.locked = true; p.status = 'fixed';
+  const { error } = await sb.from('photos')
+    .update({ locked:true, status:'fixed' }).eq('id', id);
+  if(error){ p.locked=false; p.status='draft'; toast('確定できませんでした'); return; }
+  logAction('photo.lock', id);
+  renderAll();
+  toast('確定しました');
+}
+
+// ── ロック解除（理由の記録が必須）──
+async function unlockPhoto(id){
+  if(!canManage()){ toast('解除できるのは現場責任者以上です'); return; }
+  const p = photos.find(x=>x.id===id); if(!p) return;
+  const reason = prompt('解除する理由を入力してください（台帳の訂正記録に残ります）');
+  if(!reason || !reason.trim()){ toast('理由の入力が必要です'); return; }
+
+  const before = {
+    work_type:p.wt, kind:p.kind, title:p.title, place:p.place, memo:p.memo
+  };
+  const { error: e1 } = await sb.from('unlock_logs').insert({
+    photo_id:id, project_id:currentProjectId, user_id:me.id,
+    reason: reason.trim(), before_data: before
+  });
+  if(e1){ toast('記録に失敗しました'); console.error(e1); return; }
+
+  await sb.from('photos').update({ locked:false, status:'draft' }).eq('id', id);
+  p.locked = false; p.status = 'draft';
+  logAction('photo.unlock', id, { reason: reason.trim() });
+  renderAll();
+  toast('解除しました。訂正記録に残ります');
+}
+
+// ── 操作履歴 ──
+function logAction(action, targetId, detail){
+  if(!sbReady || !me) return;
+  sb.from('audit_logs').insert({
+    org_id: myOrg?.id || null,
+    project_id: currentProjectId,
+    user_id: me.id,
+    action, target_id: targetId || null,
+    detail: detail || {}
+  }).then(()=>{});
+}
+
+// ── 工種テンプレートの保存 ──
+async function syncTemplates(){
+  if(!currentProjectId || !sbReady) return;
+  if(!canWrite()){ toast('変更する権限がありません'); return; }
+  await sb.from('templates').delete().eq('project_id', currentProjectId);
+  if(!templates.length) return;
+  const rows = templates.map((t,i)=>({
+    project_id: currentProjectId,
+    phase: t.phase||'during', category: t.category||'progress',
+    work_type: t.wt, kinds: t.kinds,
+    required_count: t.required||0, sort_order: i
+  }));
+  const { data } = await sb.from('templates').insert(rows).select();
+  templates = (data||[]).map(t=>({
+    id:t.id, wt:t.work_type, kinds:t.kinds||[],
+    phase:t.phase, category:t.category, required:t.required_count||0
+  }));
+}
+
+// ── 共有 ──
+function copyShareUrl(){
+  const url = location.origin + location.pathname + '?code=' + currentShareCode;
+  navigator.clipboard.writeText(url).then(()=>toast('参加用URLをコピーしました'));
+}
+
+// ── 招待リンクを作る ──
+async function makeInvite(role){
+  if(!canManage()){ toast('招待できるのは現場責任者以上です'); return; }
+  const token = crypto.randomUUID().replace(/-/g,'').slice(0,24);
+  const { error } = await sb.from('project_invites').insert({
+    project_id: currentProjectId, token, role: role||'shooter', created_by: me.id
+  });
+  if(error){ toast('招待の作成に失敗しました'); return; }
+  const url = location.origin + location.pathname + '?invite=' + token;
+  navigator.clipboard.writeText(url).then(()=>
+    toast('招待リンクをコピーしました（14日間有効）'));
+}
+
 
 // ===== STATE =====
 let photos=[], templates=[], selId=null, multiSel=new Set();
@@ -793,11 +3782,15 @@ function showPage(p){
   if(p==='ledger')renderPrintPreview();
   if(p==='map')renderMap();
   if(p==='template')renderTpl();
+  if(p==='board')loadBoards();
   if(window.innerWidth<=1000)document.getElementById('nav').classList.remove('open');
 }
 
 // ===== UPLOAD =====
-function openUpload(){if(isMobile)$('#camera-input').click();else $('#file-input').click();}
+function openUpload(){
+  if(isMobile && boards.length){ showPage('board'); toast('黒板を選ぶと撮影が始まります'); return; }
+  if(isMobile) $('#camera-input').click(); else $('#file-input').click();
+}
 $('#file-input').addEventListener('change',e=>addFiles(e.target.files));
 $('#camera-input').addEventListener('change',e=>addFiles(e.target.files));
 const drop=$('#drop');
@@ -808,81 +3801,6 @@ if(isMobile){
   $('#drop-title').textContent='タップして撮影';
   $('#drop-sub').textContent='カメラが起動します';
   drop.classList.add('mob');
-}
-
-async function addFiles(files){
-  if(!currentProjectId){toast('先に案件を選択してください');showProjectPicker();return;}
-  if(!templates.length){toast('先にテンプレートを作成してください');showPage('template');return;}
-  const def=templates[0];
-  setConnStatus('アップロード中...','sync');
-  let ok=0;
-  for(let i=0;i<files.length;i++){
-    const f=files[i];if(!f.type.startsWith('image/'))continue;
-    const src=await loadOriented(f);
-    const exif=await readExif(f);
-    const buf=await f.arrayBuffer();
-    const hash=await sha256(buf);
-    const meta={wt:def.wt,kind:def.kinds[0]||'',hash,exifDate:exif.dateTime||'',gps:exif.gps,order:Date.now()+i};
-    const res=await uploadPhoto(src,meta);
-    if(res){
-      photos.push({id:res.id,src:res.url,storagePath:res.path,
-        wt:def.wt,kind:def.kinds[0]||'',title:'',place:'',memo:'',comment:'',
-        locked:false,inLedger:true,annots:[],order:meta.order,
-        ts:Date.now(),hash,exifDate:exif.dateTime||'',gps:exif.gps||null});
-      ok++;
-      renderAll();
-    }
-  }
-  setConnStatus('接続済み','ok');
-  if(ok)showClassified(ok,def.wt);
-  toast(ok+'枚を追加しました');
-}
-
-async function loadOriented(file){
-  return new Promise(res=>{
-    const r=new FileReader();
-    r.onload=e=>{
-      const view=new DataView(e.target.result);
-      let orientation=1;
-      if(view.getUint16(0,false)===0xFFD8){
-        for(let o=2;o<view.byteLength;){
-          const m=view.getUint16(o,false);o+=2;
-          if(m===0xFFE1){const len=view.getUint16(o,false);
-            if(view.getUint32(o+2,false)===0x45786966){
-              const le=view.getUint16(o+10,false)===0x4949;
-              const ifd=o+10+view.getUint32(o+14,le);
-              const n=view.getUint16(ifd,le);
-              for(let t=0;t<n;t++){if(view.getUint16(ifd+2+12*t,le)===0x0112){orientation=view.getUint16(ifd+2+12*t+8,le);break;}}
-            }break;}
-          else if((m&0xFF00)!==0xFF00)break;
-          else o+=view.getUint16(o,false);
-        }
-      }
-      const img2=new Image();img2.onload=()=>{
-        const deg={1:0,3:180,6:90,8:-90}[orientation]||0;
-        const c=document.createElement('canvas');
-        if(deg===90||deg===-90){c.width=img2.height;c.height=img2.width;}
-        else{c.width=img2.width;c.height=img2.height;}
-        const ctx=c.getContext('2d');ctx.translate(c.width/2,c.height/2);ctx.rotate(deg*Math.PI/180);
-        ctx.drawImage(img2,-img2.width/2,-img2.height/2);res(c.toDataURL('image/jpeg',0.88));
-      };img2.src=URL.createObjectURL(file);
-    };r.readAsArrayBuffer(file);
-  });
-}
-
-async function readExif(file){
-  return new Promise(res=>{
-    const reader=new FileReader();
-    reader.onload=e=>{
-      try{
-        const str=new TextDecoder('ascii',{fatal:false}).decode(new Uint8Array(e.target.result.slice(0,65536)));
-        const m=str.match(/(\d{4}):(\d{2}):(\d{2}) (\d{2}:\d{2}:\d{2})/);
-        const dateTime=m?`${m[1]}-${m[2]}-${m[3]} ${m[4]}`:'';
-        // GPS簡易読み取り（サンプル: 実際はEXIF解析が必要）
-        res({dateTime,gps:null});
-      }catch(ex){res({dateTime:'',gps:null});}
-    };reader.readAsArrayBuffer(file.slice(0,65536));
-  });
 }
 
 async function sha256(buf){
@@ -896,6 +3814,8 @@ function renderAll(){renderGrid();renderSidebar();renderDetail();}
 function renderSidebar(){
   const t=document.getElementById('sb-proj-text');
   if(t)t.textContent=project.name||'未選択';
+  const c=document.getElementById('sb-proj-code');
+  if(c)c.textContent=currentProject?(currentProject.code+' ・ '+statusJa(currentProject.status)):'';
   renderRecent();
 }
 
@@ -966,7 +3886,7 @@ function renderGrid(){
   // ── グリッド：工種ごとセクション ──
   const wts=activeFilter?[activeFilter]:[...new Set(vis.map(p=>p.wt))];
   const szc=thumbSize==='sm'?'g-sm':thumbSize==='lg'?'g-lg':'g-md';
-  let no=0,h='<div class="gwrap">';
+  let h='<div class="gwrap">';
   wts.forEach(wt=>{
     const ps=vis.filter(p=>p.wt===wt);if(!ps.length)return;
     const fold=collapsedWt.has(wt);
@@ -978,11 +3898,11 @@ function renderGrid(){
         <span class="st"><span>撮影 <b>${ps.length}</b></span><span>台帳 <b>${lg}</b></span>${lk?`<span>確定 <b>${lk}</b></span>`:''}</span>
       </div>
       <div class="gsec-b ${szc}${fold?' fold':''}">`;
-    ps.forEach(p=>{no++;
+    ps.forEach(p=>{
       h+=`<div class="ph${p.id===selId?' sel':''}${p.inLedger?'':' out'}${p.locked?' lk':''}" data-id="${p.id}" onclick="selectPhoto('${p.id}')">
         <div class="ph-i">
-          <img src="${p.src}" loading="lazy" ondblclick="event.stopPropagation();openFs('${p.id}')">
-          <span class="ph-n">${String(no).padStart(3,'0')}</span>
+          <img src="${p.thumb||p.src}" loading="lazy" decoding="async" ondblclick="event.stopPropagation();openFs('${p.id}')">
+          <span class="ph-n">${String(p.no||0).padStart(3,'0')}</span>
           <label class="ph-cb" onclick="event.stopPropagation()"><input type="checkbox" ${multiSel.has(p.id)?'checked':''} onchange="toggleSel('${p.id}',this.checked)"></label>
           <label class="ph-lg" onclick="event.stopPropagation()" title="台帳に載せる"><input type="checkbox" ${p.inLedger?'checked':''} onchange="toggleLedger('${p.id}',this.checked)"></label>
           ${!p.locked?`<button class="ph-x" onclick="event.stopPropagation();deletePhoto('${p.id}')">✕</button>`:''}
@@ -1002,18 +3922,17 @@ function renderGrid(){
 
 // ── リストビュー ──
 function renderListView(vis){
-  let no=0;
   let h=`<table class="tbl"><thead><tr>
     <th class="c-cb"><input type="checkbox" onchange="toggleAllVisible(this.checked)" ${multiSel.size&&multiSel.size===vis.length?'checked':''}></th>
     <th class="c-th"></th><th class="c-no">No.</th>
     <th class="c-ti">撮影内容</th><th class="c-wt">工種</th><th class="c-kd">種別</th>
     <th class="c-pl">場所</th><th class="c-dt">撮影日時</th><th class="c-st">状態</th><th class="c-ed"></th>
   </tr></thead><tbody>`;
-  vis.forEach(p=>{no++;
+  vis.forEach(p=>{
     h+=`<tr class="${p.id===selId?'sel':''}${p.inLedger?'':' out'}" onclick="selectPhoto('${p.id}')">
       <td class="c-cb" onclick="event.stopPropagation()"><input type="checkbox" ${multiSel.has(p.id)?'checked':''} onchange="toggleSel('${p.id}',this.checked)"></td>
-      <td class="c-th"><img src="${p.src}" loading="lazy" ondblclick="event.stopPropagation();openFs('${p.id}')"></td>
-      <td class="c-no">${String(no).padStart(3,'0')}</td>
+      <td class="c-th"><img src="${p.thumb||p.src}" loading="lazy" decoding="async" ondblclick="event.stopPropagation();openFs('${p.id}')"></td>
+      <td class="c-no">${String(p.no||0).padStart(3,'0')}</td>
       <td class="c-ti" ondblclick="event.stopPropagation();inlineEdit(this,'${p.id}','title')">${esc(p.title||'—')}</td>
       <td class="c-wt">${esc(p.wt)}</td>
       <td class="c-kd">${esc(p.kind)}</td>
@@ -1027,12 +3946,12 @@ function renderListView(vis){
 
 // ── 2カラムビュー ──
 function renderTwoCol(vis){
-  let no=0,h='<div class="two-col">';
-  vis.forEach(p=>{no++;
+  let h='<div class="two-col">';
+  vis.forEach(p=>{
     h+=`<div class="tc${p.id===selId?' sel':''}" onclick="selectPhoto('${p.id}')">
       <div class="tc-i">
-        <img src="${p.src}" loading="lazy" ondblclick="event.stopPropagation();openFs('${p.id}')">
-        <span class="ph-n" style="position:absolute;left:0;bottom:0">${String(no).padStart(3,'0')}</span>
+        <img src="${p.thumb||p.src}" loading="lazy" decoding="async" ondblclick="event.stopPropagation();openFs('${p.id}')">
+        <span class="ph-n" style="position:absolute;left:0;bottom:0">${String(p.no||0).padStart(3,'0')}</span>
       </div>
       <div class="tc-b">
         <dl>
@@ -1060,7 +3979,7 @@ function toggleAllVisible(on){
 
 // ── インライン編集 ──
 function inlineEdit(td,id,key){
-  const p=photos.find(x=>x.id===id);if(!p||p.locked)return;
+  const p=photos.find(x=>x.id===id);if(!p||!canEditPhoto(p))return;
   const cur=p[key]||'';
   td.innerHTML=`<input class="inline-in" value="${esc(cur)}">`;
   const inp=td.querySelector('input');inp.focus();inp.select();
@@ -1081,7 +4000,9 @@ function toggleWt(wt){if(collapsedWt.has(wt))collapsedWt.delete(wt);else collaps
 function selectPhoto(id){selId=id;renderGrid();renderDetail();}
 function closeDetail(){selId=null;document.getElementById('dtl').classList.remove('on');renderGrid();}
 function toggleSel(id,checked){if(checked)multiSel.add(id);else multiSel.delete(id);renderBatchBar();renderGrid();}
-function toggleLedger(id,v){const p=photos.find(x=>x.id===id);if(p){p.inLedger=v;syncPhoto(p);}renderGrid();}
+function toggleLedger(id,v){const p=photos.find(x=>x.id===id);if(!p)return;
+  if(!canEditPhoto(p)&&!canManage()){toast('変更する権限がありません');renderGrid();return;}
+  p.inLedger=v;syncPhoto(p,['inLedger']);renderGrid();}
 function selectAll(){photos.forEach(p=>multiSel.add(p.id));renderBatchBar();renderGrid();}
 function clearSel(){multiSel.clear();renderBatchBar();renderGrid();}
 
@@ -1091,21 +4012,23 @@ function renderSelBar(){
   else b.classList.remove('on');}
 function renderBatchBar(){renderSelBar();}
 
-async function batchWt(){const wt=prompt('工種名');if(!wt)return;const tp=templates.find(t=>t.wt===wt);if(!tp){toast('テンプレートにない工種です');return;}
+async function batchWt(){if(!canWrite()){toast('変更する権限がありません');return;}const wt=prompt('工種名');if(!wt)return;const tp=templates.find(t=>t.wt===wt);if(!tp){toast('テンプレートにない工種です');return;}
   const ids=[...multiSel];
   for(const id of ids){const p=photos.find(x=>x.id===id);if(p&&!p.locked){p.wt=wt;p.kind=tp.kinds[0]||'';await syncPhoto(p);}}
   clearSel();renderAll();toast('工種を一括変更しました');}
-async function batchLedger(v){const ids=[...multiSel];
+async function batchLedger(v){if(!canWrite()){toast('変更する権限がありません');return;}const ids=[...multiSel];
   for(const id of ids){const p=photos.find(x=>x.id===id);if(p){p.inLedger=v;await syncPhoto(p);}}
   clearSel();renderAll();}
-async function batchDelete(){if(!confirm(multiSel.size+'枚を削除しますか？（確定済みは除外）'))return;
+async function batchDelete(){if(!canWrite()){toast('削除する権限がありません');return;}if(!confirm(multiSel.size+'枚を削除しますか？（確定済みは除外）'))return;
   setConnStatus('削除中...','sync');
   for(const id of multiSel){const p=photos.find(x=>x.id===id);if(p&&!p.locked)await deletePhotoRemote(p);}
   photos=photos.filter(p=>!(multiSel.has(p.id)&&!p.locked));clearSel();selId=null;renderAll();
   setConnStatus('接続済み','ok');toast('削除しました');}
 
 // ===== DELETE =====
-async function deletePhoto(id){const p=photos.find(x=>x.id===id);if(!p)return;if(p.locked){toast('確定済みは削除できません');return;}if(!confirm('削除しますか？'))return;
+async function deletePhoto(id){const p=photos.find(x=>x.id===id);if(!p)return;
+  if(p.locked){toast('確定済みの写真は削除できません。解除してから操作してください');return;}
+  if(!canEditPhoto(p)){toast('この写真を削除する権限がありません');return;}if(!confirm('削除しますか？'))return;
   await deletePhotoRemote(p);
   photos=photos.filter(x=>x.id!==id);if(selId===id){selId=null;$('#dtl').classList.remove('on');}renderAll();toast('削除しました');}
 
@@ -1158,7 +4081,10 @@ function renderDetail(){
       ${p.exifDate?`<div class="ro-r"><span class="ro-k">撮影日時</span><span class="ro-v">${esc(p.exifDate)}</span></div>`:''}
       ${p.hash?`<div class="ro-r"><span class="ro-k">照合コード</span><span class="ro-v" style="font-family:ui-monospace,monospace;font-size:9.5px">${esc(p.hash.slice(0,24))}…</span></div>`:''}
     </div>
-    <button class="b" style="width:100%;justify-content:center;margin-top:7px" onclick="verifyPhoto('${p.id}')">改ざんを確認する</button>`;
+    <div style="display:flex;gap:5px;margin-top:7px">
+      <button class="b" style="flex:1;justify-content:center" onclick="verifyPhoto('${p.id}')">改ざんを確認</button>
+      ${canManage()?`<button class="b" style="flex:1;justify-content:center" onclick="unlockPhoto('${p.id}')">解除して修正</button>`:''}
+    </div>`;
   }else{
     const wo=templates.map(t=>`<option${t.wt===p.wt?' selected':''}>${esc(t.wt)}</option>`).join('');
     const ko=(tp?tp.kinds:[]).map(k=>`<option${k===p.kind?' selected':''}>${esc(k)}</option>`).join('');
@@ -1170,8 +4096,13 @@ function renderDetail(){
       ${typo?`<div class="warn-x">⚠ ${esc(typo)}</div>`:''}</div>
     <div class="fld"><label>場所・測点</label><input value="${esc(p.place)}" placeholder="例：通り芯X3" oninput="chg('place',this.value)"></div>
     <div class="fld"><label>備考</label><textarea placeholder="撮影記録の補足" oninput="chg('memo',this.value)">${esc(p.memo)}</textarea></div>
-    ${p.exifDate?`<div style="font-size:10.5px;color:var(--ink-4);margin-bottom:5px">撮影日時 ${esc(p.exifDate)}</div>`:''}
-    <button class="b pri" style="width:100%;justify-content:center" onclick="lockPhoto('${p.id}')">確定してロックする</button>`;
+    <div style="font-size:10.5px;color:var(--ink-4);margin-bottom:5px;line-height:1.6">
+      ${p.exifDate?`撮影日時 ${esc(p.exifDate)}<br>`:''}
+      写真番号 ${String(p.no||0).padStart(3,'0')}
+      ${p.gps?' ・ 位置情報あり':''}
+    </div>
+    ${canManage()?`<button class="b pri" style="width:100%;justify-content:center" onclick="lockPhoto('${p.id}')">確定してロックする</button>`
+      :`<div style="font-size:10.5px;color:var(--ink-4);text-align:center;padding:4px">確定は現場責任者が行います</div>`}`;
   }
   h+=`</div>`;
 
@@ -1202,9 +4133,9 @@ function renderDetail(){
   box.innerHTML=h;
 }
 
-function chg(key,val){const p=photos.find(x=>x.id===selId);if(p&&!p.locked){p[key]=val;renderGrid();
+function chg(key,val){const p=photos.find(x=>x.id===selId);if(p&&canEditPhoto(p)){p[key]=val;renderGrid();
   clearTimeout(chgTimer);chgTimer=setTimeout(()=>syncPhoto(p),800);}}
-function changeWt(wt){const p=photos.find(x=>x.id===selId);if(!p||p.locked)return;p.wt=wt;const tp=templates.find(t=>t.wt===wt);p.kind=tp?tp.kinds[0]||'':'';renderAll();syncPhoto(p);}
+function changeWt(wt){const p=photos.find(x=>x.id===selId);if(!p||!canEditPhoto(p))return;p.wt=wt;const tp=templates.find(t=>t.wt===wt);p.kind=tp?tp.kinds[0]||'':'';renderAll();syncPhoto(p);}
 
 // ===== BB PREVIEW =====
 function setBbLayout(l){bbLayout=l;renderDetail();}
@@ -1219,18 +4150,28 @@ function makeBbPreview(p){
 }
 
 // ===== LOCK / VERIFY =====
-function lockPhoto(id){const p=photos.find(x=>x.id===id);if(!p)return;p.locked=true;renderAll();syncPhoto(p);toast('確定しました');}
-function verifyPhoto(id){const p=photos.find(x=>x.id===id);if(!p)return;toast(p.locked?'改ざん検知OK（ハッシュ一致）':'未確定の写真です');}
+async function verifyPhoto(id){
+  const p = photos.find(x=>x.id===id); if(!p) return;
+  toast('照合しています...');
+  try{
+    const url = await signedUrl(p.pathLedger);
+    const blob = await (await fetch(url)).blob();
+    const r = await verifyEmbedded(blob);
+    if(r.ok) alert('照合できました。\n\nこの写真は撮影時から変更されていません。\n照合コード: ' + r.expected.slice(0,32) + '…');
+    else if(r.reason) alert('照合できませんでした。\n\n' + r.reason + '\n（撮影モード以外で取り込んだ写真には照合コードが入りません）');
+    else alert('内容が一致しません。\n\nこの写真は撮影後に変更された可能性があります。');
+  }catch(e){ console.error(e); toast('照合に失敗しました'); }
+}
 
 // ===== ROTATE =====
-function rotatePhoto(id){const p=photos.find(x=>x.id===id);if(!p||p.locked)return;
+function rotatePhoto(id){const p=photos.find(x=>x.id===id);if(!p||!canEditPhoto(p)){toast('編集できません');return;}
   const img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=img.height;c.height=img.width;
     const ctx=c.getContext('2d');ctx.translate(c.width/2,c.height/2);ctx.rotate(Math.PI/2);
     ctx.drawImage(img,-img.width/2,-img.height/2);
     addUndo('回転',id,p.src);p.src=c.toDataURL('image/jpeg',.9);renderAll();toast('90°回転しました');};img.src=p.src;}
 
 // ===== ADJUST =====
-function adjustPhoto(id,br,co){const p=photos.find(x=>x.id===id);if(!p||p.locked)return;
+function adjustPhoto(id,br,co){const p=photos.find(x=>x.id===id);if(!p||!canEditPhoto(p))return;
   const img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=img.width;c.height=img.height;
     const ctx=c.getContext('2d');ctx.filter=`brightness(${br}%) contrast(${co}%)`;ctx.drawImage(img,0,0);
     p.src=c.toDataURL('image/jpeg',.9);
@@ -1239,7 +4180,7 @@ function adjustPhoto(id,br,co){const p=photos.find(x=>x.id===id);if(!p||p.locked
   };img.src=p.src;}
 
 // ===== BLUR =====
-function applyBlur(id){const p=photos.find(x=>x.id===id);if(!p||p.locked)return;
+function applyBlur(id){const p=photos.find(x=>x.id===id);if(!p||!canEditPhoto(p)){toast('編集できません');return;}
   const img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=img.width;c.height=img.height;
     const ctx=c.getContext('2d');ctx.drawImage(img,0,0);
     const cx=img.width*.35,cy=img.height*.35,bw=img.width*.3,bh=img.height*.3;
@@ -1255,7 +4196,7 @@ function applyBlur(id){const p=photos.find(x=>x.id===id);if(!p||p.locked)return;
 
 // ===== CROP =====
 let cropState={id:null,img:null,sx:0,sy:0,ex:0,ey:0,drag:false};
-function openCrop(id){const p=photos.find(x=>x.id===id);if(!p||p.locked)return;
+function openCrop(id){const p=photos.find(x=>x.id===id);if(!p||!canEditPhoto(p)){toast('編集できません');return;}
   cropState.id=id;const img=new Image();img.onload=()=>{cropState.img=img;
     const cv=$('#crop-canvas');const sc=Math.min(window.innerWidth*.85/img.width,window.innerHeight*.65/img.height,1);
     cv.width=img.width*sc;cv.height=img.height*sc;
@@ -1282,13 +4223,13 @@ function applyCrop(){const p=photos.find(x=>x.id===cropState.id);if(!p)return;
 function closeCrop(){$('#crop-modal').classList.remove('on');}
 
 // ===== FULLSCREEN =====
-function openFs(id){const p=photos.find(x=>x.id===id);if(!p)return;$('#fs-img').src=p.src;$('#fs-info').textContent=p.title||p.kind;$('#fs-modal').classList.add('on');}
+function openFs(id){const p=photos.find(x=>x.id===id);if(!p)return;$('#fs-img').src=p.src||p.thumb;$('#fs-info').textContent=p.title||p.kind;$('#fs-modal').classList.add('on');}
 function closeFsModal(){$('#fs-modal').classList.remove('on');}
 $('#fs-modal').addEventListener('click',e=>{if(e.target.id==='fs-modal')closeFsModal();});
 
 // ===== ANNOTATION FULL =====
 let annoFullId=null,annoTool=null;
-function openAnnoFull(id){const p=photos.find(x=>x.id===id);if(!p||p.locked)return;
+function openAnnoFull(id){const p=photos.find(x=>x.id===id);if(!p||!canEditPhoto(p)){toast('編集できません');return;}
   annoFullId=id;$('#anno-full-img').src=p.src;
   renderAnnoSvgFull();$('#anno-full').classList.add('on');setupAnnoFullEvents();}
 function closeAnnoFull(){$('#anno-full').classList.remove('on');annoFullId=null;renderAll();}
@@ -1400,10 +4341,6 @@ function exportCSV(){let csv='工種,種別\n';templates.forEach(t=>{if(t.kinds.
   const blob=new Blob(['﻿'+csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='テンプレート.csv';a.click();toast('CSVを書き出しました');}
 
 // ===== PROJECT =====
-async function saveProj(){project={name:$('#p-name').value,site:$('#p-site').value,start:$('#p-start').value,end:$('#p-end').value,
-  client:$('#p-client').value,builder:$('#p-builder').value,rep:$('#p-rep').value,overview:$('#p-overview').value};
-  renderSidebar();await syncProject();toast('案件情報を保存しました');}
-
 // ===== MAP PAGE =====
 function renderMap(){
   const gps=photos.filter(p=>p.gps), no=photos.filter(p=>!p.gps);
@@ -1521,7 +4458,108 @@ function printLedger(){
   .pp-photo-table{width:100%;border-collapse:collapse;margin-top:2mm}
   .pp-photo-table td{border:1px solid #ccc;padding:2mm 3mm;font-size:9pt;vertical-align:top}
   .pp-photo-table .k{background:#f5f5f5;font-weight:700;width:40%}
-  @media print{@page{size:A4;margin:0}.print-preview-page{page-break-after:always}}</style>
+  @media print{@page{size:A4;margin:0}.print-preview-page{page-break-after:always}}
+/* ══ v14 黒板管理 ══ */
+.bd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:7px}
+.bd{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:var(--r);padding:9px 10px;cursor:pointer;transition:border-color .1s}
+.bd:hover{border-color:var(--brand);border-left-color:var(--brand)}
+.bd.done{border-left-color:var(--ok)}
+.bd-h{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.bd-k{font-size:11px;color:var(--ink-3);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bd-t{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bd-p{font-size:11px;color:var(--ink-4);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bd-a{display:flex;gap:4px;margin-top:7px;opacity:0;transition:opacity .1s}
+.bd:hover .bd-a{opacity:1}
+.bd-a .b{height:20px;font-size:10.5px;padding:0 7px}
+
+/* ══ v14 撮影モード ══ */
+#shoot{position:fixed;inset:0;background:#0B0D0F;z-index:900;display:none;flex-direction:column}
+#shoot.on{display:flex}
+.sh-top{height:52px;background:rgba(0,0,0,.75);display:flex;align-items:center;gap:9px;padding:0 12px;flex-shrink:0;color:#fff}
+.sh-top .x{width:30px;height:30px;border:none;background:rgba(255,255,255,.12);border-radius:var(--r);color:#fff;font-size:15px;cursor:pointer;flex-shrink:0}
+.sh-top .info{flex:1;min-width:0}
+.sh-top .t{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sh-top .s{font-size:11px;color:rgba(255,255,255,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sh-top .nav{display:flex;gap:3px;flex-shrink:0}
+.sh-top .nav button{width:28px;height:28px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);border-radius:var(--r);color:#fff;cursor:pointer;font-size:13px}
+
+#cam-wrap{flex:1;position:relative;overflow:hidden;background:#000;display:flex;align-items:center;justify-content:center}
+#cam{width:100%;height:100%;object-fit:contain;display:block}
+#cam-fallback{display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:rgba(255,255,255,.7);text-align:center;padding:24px}
+#cam-fallback svg{width:44px;height:44px;stroke:currentColor;fill:none;stroke-width:1.4}
+#cam-fallback button{height:38px;padding:0 20px;background:var(--brand);border:none;border-radius:var(--r);color:#fff;font-size:14px;cursor:pointer;font-family:var(--f)}
+
+#bb-preview{position:absolute;border:1px solid;border-radius:2px;padding:1.6% 1.8%;cursor:move;user-select:none;touch-action:none;line-height:1.5;box-shadow:0 1px 6px rgba(0,0,0,.3);min-width:120px}
+.bbp-l{display:flex;gap:5px;padding:2px 0}
+.bbp-l span{opacity:.85;min-width:4.2em;flex-shrink:0;font-size:.86em}
+.bbp-l b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+#sh-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .12s}
+#sh-flash.on{opacity:.85;transition:none}
+
+.sh-style{background:rgba(0,0,0,.75);padding:7px 10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;flex-shrink:0;overflow-x:auto}
+.sh-style .grp{display:flex;gap:2px;align-items:center}
+.sh-style .lb{font-size:10px;color:rgba(255,255,255,.5);margin-right:3px;white-space:nowrap}
+.sh-style button{height:24px;padding:0 9px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);border-radius:3px;color:rgba(255,255,255,.85);font-size:11px;cursor:pointer;white-space:nowrap;font-family:var(--f)}
+.sh-style button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+
+.sh-bottom{height:96px;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
+.sh-shutter{width:66px;height:66px;border-radius:50%;border:4px solid rgba(255,255,255,.85);background:#fff;cursor:pointer;flex-shrink:0;transition:transform .08s}
+.sh-shutter:active{transform:scale(.92)}
+#sh-last{width:46px;height:46px;object-fit:cover;border-radius:5px;border:2px solid rgba(255,255,255,.35);display:none}
+.sh-right{width:46px;text-align:right;color:rgba(255,255,255,.7);font-size:11px}
+#sh-status{position:absolute;bottom:104px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;padding:5px 13px;border-radius:14px;font-size:12px;pointer-events:none}
+
+@media(max-width:600px){
+  .sh-bottom{height:88px}
+  .sh-shutter{width:60px;height:60px}
+  #bb-preview{font-size:11px!important}
+}
+
+
+/* ══ v15 撮影方法の切替 ══ */
+.sh-mode{display:flex;gap:3px;align-items:center}
+.pos-badge{font-size:10.5px;padding:2px 7px;border-radius:10px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.6);white-space:nowrap}
+.pos-badge.ok{background:rgba(27,127,75,.35);color:#9FE3BC}
+#cam-caps{display:none;gap:4px;align-items:center}
+#device-hint{display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:rgba(255,255,255,.65);text-align:center;padding:20px;position:absolute;inset:0;pointer-events:none}
+#device-hint svg{width:40px;height:40px;stroke:currentColor;fill:none;stroke-width:1.4}
+
+/* 撮り直し確認 */
+#shot-preview{position:fixed;inset:0;background:#0B0D0F;z-index:940;display:none;flex-direction:column}
+#shot-preview.on{display:flex}
+#shot-preview .pv-wrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:8px}
+#pv-img{max-width:100%;max-height:100%;object-fit:contain}
+.pv-bar{height:80px;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;gap:14px;flex-shrink:0;padding:0 16px}
+.pv-bar button{height:44px;padding:0 26px;border-radius:var(--r);border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--f)}
+.pv-re{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.25)!important}
+.pv-ok{background:var(--brand);color:#fff}
+
+/* ══ v15 レイアウトビルダー ══ */
+.lb-wrap{display:grid;grid-template-columns:1fr 300px;gap:14px}
+@media(max-width:820px){.lb-wrap{grid-template-columns:1fr}}
+.lf{display:flex;align-items:center;gap:6px;padding:5px 7px;border:1px solid var(--line);border-radius:var(--r);margin-bottom:4px;background:var(--panel)}
+.lf.off{opacity:.45}
+.lf-cb input{width:14px;height:14px;accent-color:var(--brand);cursor:pointer}
+.lf-in{flex:1;min-width:0;height:24px;border:1px solid var(--line-2);border-radius:2px;padding:0 6px;font-size:12px;outline:none}
+.lf-in:focus{border-color:var(--brand)}
+.lf-k{font-size:10px;color:var(--ink-4);white-space:nowrap}
+.lf-a{display:flex;gap:2px}
+.lf-a .b{width:22px;height:22px;padding:0;justify-content:center;font-size:11px}
+#lb-add{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+#lb-canvas{width:100%;border:1px solid var(--line);border-radius:var(--r);display:block;background:#7b8fa1}
+.lb-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px}
+.lb-row label{width:70px;color:var(--ink-3);flex-shrink:0}
+.lb-row select,.lb-row input[type=text]{height:26px;border:1px solid var(--line-2);border-radius:2px;padding:0 6px;font-size:12px;outline:none;flex:1}
+.lb-row input[type=range]{flex:1;accent-color:var(--brand)}
+
+/* ══ v15 メンバー ══ */
+.mem{display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid var(--line);border-radius:var(--r);margin-bottom:4px}
+.mem-i{width:26px;height:26px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.mem-n{font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mem-sel{height:24px;border:1px solid var(--line-2);border-radius:2px;font-size:11.5px;padding:0 4px;outline:none;background:var(--panel)}
+
+</style>
   </head><body>${pp}<script>window.onload=()=>{setTimeout(()=>{window.print();window.close();},600);}<\/script></body></html>`);
   win.document.close();}
 
@@ -1545,24 +4583,6 @@ function genShareCode(){
 }
 
 // --- 案件を作る ---
-async function createProject(){
-  const name=document.getElementById('new-proj-name').value.trim();
-  if(!name){toast('工事名を入力してください');return;}
-  if(!sbReady){toast('Supabaseに接続されていません');return;}
-  setConnStatus('作成中...','sync');
-  const code=genShareCode();
-  const {data,error}=await sb.from('projects').insert({share_code:code,name}).select().single();
-  if(error){toast('作成に失敗しました');setConnStatus('エラー','err');console.error(error);return;}
-  currentProjectId=data.id;currentShareCode=data.share_code;
-  project={name:data.name,site:'',start:'',end:'',client:'',builder:'',rep:'',overview:''};
-  photos=[];templates=[];
-  localStorage.setItem('lastProject',data.id);
-  await loadDefaultTemplates();
-  closeProjectPicker();renderAll();pushRecent(data.id,data.name);setConnStatus('接続済み','ok');
-  toast('案件を作成しました');
-  showShareCode();
-}
-
 // --- 共有コードで参加 ---
 async function joinProject(){
   const code=document.getElementById('join-code').value.trim().toUpperCase();
@@ -1576,60 +4596,7 @@ async function joinProject(){
 }
 
 // --- 案件を開く ---
-async function openProject(pid){
-  if(!sbReady)return;
-  setConnStatus('読込中...','sync');
-  currentProjectId=pid;
-  localStorage.setItem('lastProject',pid);
-
-  const {data:pj}=await sb.from('projects').select().eq('id',pid).single();
-  if(pj){
-    currentShareCode=pj.share_code;
-    project={name:pj.name||'',site:pj.site||'',start:pj.start_date||'',end:pj.end_date||'',
-      client:pj.client||'',builder:pj.builder||'',rep:pj.rep||'',overview:pj.overview||''};
-    coverOpts={subtitle:pj.cover_sub||'',logoText:pj.cover_logo||''};
-  }
-
-  const {data:tpls}=await sb.from('templates').select().eq('project_id',pid).order('sort_order');
-  templates=(tpls||[]).map(t=>({id:t.id,wt:t.work_type,kinds:t.kinds||[]}));
-
-  const {data:phs}=await sb.from('photos').select().eq('project_id',pid).order('sort_order');
-  photos=(phs||[]).map(p=>({
-    id:p.id,src:p.public_url,storagePath:p.storage_path,
-    wt:p.work_type||'',kind:p.kind||'',title:p.title||'',place:p.place||'',
-    memo:p.memo||'',comment:p.comment||'',
-    inLedger:p.in_ledger,locked:p.locked,hash:p.hash||'',
-    annots:p.annots||[],exifDate:p.exif_date||'',
-    gps:(p.gps_lat&&p.gps_lng)?{lat:p.gps_lat,lng:p.gps_lng}:null,
-    order:p.sort_order||0,ts:new Date(p.created_at).getTime()
-  }));
-
-  // フォームに反映
-  ['name','site','client','builder','rep','overview'].forEach(k=>{
-    const el=document.getElementById('p-'+k);if(el)el.value=project[k]||'';});
-  const ps=document.getElementById('p-start');if(ps)ps.value=project.start||'';
-  const pe=document.getElementById('p-end');if(pe)pe.value=project.end||'';
-  const cs=document.getElementById('cover-sub');if(cs)cs.value=coverOpts.subtitle||'';
-  const cl=document.getElementById('cover-logo');if(cl)cl.value=coverOpts.logoText||'';
-
-  renderAll();pushRecent(pid,project.name);setConnStatus('接続済み','ok');
-}
-
 // --- 案件一覧を表示 ---
-async function showProjectPicker(){
-  document.getElementById('proj-picker').classList.add('on');
-  if(!sbReady){document.getElementById('proj-list').innerHTML='<div style="font-size:11.5px;color:var(--stop);padding:8px">Supabaseに接続されていません。ファイル上部の接続情報を設定してください。</div>';return;}
-  const {data}=await sb.from('projects').select('id,name,share_code,created_at').order('updated_at',{ascending:false}).limit(20);
-  const list=document.getElementById('proj-list');
-  if(!data||!data.length){list.innerHTML='<div style="font-size:11.5px;color:var(--ink-4);padding:8px">まだ工事がありません</div>';return;}
-  list.innerHTML=data.map(p=>`<div class="pj-r${p.id===currentProjectId?' now':''}" onclick="openProject('${p.id}');closeProjectPicker()">
-    <div style="flex:1;min-width:0">
-      <div class="nm">${esc(p.name||'（無題）')}</div>
-      <div class="cd">${esc(p.share_code)}</div>
-    </div>
-    ${p.id===currentProjectId?'<span class="tg tg-b">開いています</span>':''}
-  </div>`).join('');
-}
 function closeProjectPicker(){document.getElementById('proj-picker').classList.remove('on');}
 
 // --- 共有コード表示 ---
@@ -1643,73 +4610,11 @@ function copyShareCode(){
 }
 
 // --- 標準テンプレートをDBに保存 ---
-async function loadDefaultTemplates(){
-  if(!currentProjectId||!sbReady)return;
-  const defs=[{wt:'着工前・仮設',kinds:['着工前状況','仮設工事']},{wt:'地盤・地業',kinds:['地盤調査','地業工事']},
-    {wt:'基礎工事',kinds:['配筋','型枠','コンクリート打設']},{wt:'構造躯体・金物',kinds:['柱','梁','金物取付']},
-    {wt:'屋根・防水',kinds:['屋根下地','防水工事']},{wt:'外装・断熱',kinds:['外壁','断熱材']},
-    {wt:'設備配管・配線',kinds:['配管','配線']},{wt:'内装仕上',kinds:['床','壁','天井']},
-    {wt:'完成・引渡し',kinds:['完成写真','引渡し']}];
-  const rows=defs.map((d,i)=>({project_id:currentProjectId,work_type:d.wt,kinds:d.kinds,sort_order:i}));
-  const {data}=await sb.from('templates').insert(rows).select();
-  templates=(data||[]).map(t=>({id:t.id,wt:t.work_type,kinds:t.kinds||[]}));
-}
-
 // --- 案件情報を保存 ---
-async function syncProject(){
-  if(!currentProjectId||!sbReady)return;
-  await sb.from('projects').update({
-    name:project.name,site:project.site,start_date:project.start,end_date:project.end,
-    client:project.client,builder:project.builder,rep:project.rep,overview:project.overview,
-    cover_sub:coverOpts.subtitle,cover_logo:coverOpts.logoText
-  }).eq('id',currentProjectId);
-}
-
 // --- 写真をアップロード ---
-async function uploadPhoto(dataUrl,meta){
-  if(!currentProjectId||!sbReady)return null;
-  const blob=await(await fetch(dataUrl)).blob();
-  const fileName=`${currentProjectId}/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`;
-  const {error:upErr}=await sb.storage.from('photos').upload(fileName,blob,{contentType:'image/jpeg'});
-  if(upErr){console.error(upErr);return null;}
-  const {data:urlData}=sb.storage.from('photos').getPublicUrl(fileName);
-  const {data,error}=await sb.from('photos').insert({
-    project_id:currentProjectId,storage_path:fileName,public_url:urlData.publicUrl,
-    work_type:meta.wt,kind:meta.kind,title:'',place:'',memo:'',comment:'',
-    in_ledger:true,locked:false,hash:meta.hash||'',annots:[],
-    exif_date:meta.exifDate||'',gps_lat:meta.gps?.lat||null,gps_lng:meta.gps?.lng||null,
-    sort_order:meta.order||Date.now()
-  }).select().single();
-  if(error){console.error(error);return null;}
-  return {id:data.id,url:urlData.publicUrl,path:fileName};
-}
-
 // --- 写真の情報を更新 ---
-async function syncPhoto(p){
-  if(!sbReady||!p.id)return;
-  await sb.from('photos').update({
-    work_type:p.wt,kind:p.kind,title:p.title,place:p.place,memo:p.memo,comment:p.comment,
-    in_ledger:p.inLedger,locked:p.locked,annots:p.annots,sort_order:p.order
-  }).eq('id',p.id);
-}
-
 // --- 写真を削除 ---
-async function deletePhotoRemote(p){
-  if(!sbReady||!p.id)return;
-  if(p.storagePath)await sb.storage.from('photos').remove([p.storagePath]);
-  await sb.from('photos').delete().eq('id',p.id);
-}
-
 // --- テンプレートを保存 ---
-async function syncTemplates(){
-  if(!currentProjectId||!sbReady)return;
-  await sb.from('templates').delete().eq('project_id',currentProjectId);
-  if(!templates.length)return;
-  const rows=templates.map((t,i)=>({project_id:currentProjectId,work_type:t.wt,kinds:t.kinds,sort_order:i}));
-  const {data}=await sb.from('templates').insert(rows).select();
-  templates=(data||[]).map(t=>({id:t.id,wt:t.work_type,kinds:t.kinds||[]}));
-}
-
 
 // ══════ コマンドパレット ══════
 const CMDS=[
@@ -1757,15 +4662,41 @@ function cmdKey(e){
 document.getElementById('cmd-mask').addEventListener('click',e=>{if(e.target.id==='cmd-mask')closeCmd();});
 
 // ══════ 最近の工事 ══════
+function recentKey(){ return me ? 'recentPj:'+me.id : null; }
+
 function pushRecent(id,name){
-  let r=JSON.parse(localStorage.getItem('recentPj')||'[]');
+  const k=recentKey(); if(!k) return;
+  let r=JSON.parse(localStorage.getItem(k)||'[]');
   r=r.filter(x=>x.id!==id);r.unshift({id,name});r=r.slice(0,5);
-  localStorage.setItem('recentPj',JSON.stringify(r));renderRecent();}
-function renderRecent(){
+  localStorage.setItem(k,JSON.stringify(r));renderRecent();}
+
+// ログアウト時に痕跡を消す
+function clearLocalTraces(){
+  Object.keys(localStorage).forEach(k=>{
+    if(k.startsWith('recentPj')||k==='lastProject') localStorage.removeItem(k);
+  });
+  signedCache={}; photos=[]; templates=[]; boards=[];
+  currentProjectId=null; currentProject=null; currentShareCode=null;
+  myRole=null; project={name:'',site:'',start:'',end:'',client:'',builder:'',rep:'',overview:''};
+}
+async function renderRecent(){
   const el=document.getElementById('recent-list');if(!el)return;
-  const r=JSON.parse(localStorage.getItem('recentPj')||'[]').filter(x=>x.id!==currentProjectId);
-  el.innerHTML=r.length?r.map(x=>`<button class="recent-i" onclick="openProject('${x.id}')" title="${esc(x.name)}">${esc(x.name||'（無題）')}</button>`).join('')
-    :'<div style="padding:3px 14px;font-size:11px;color:var(--ink-4)">履歴なし</div>';}
+  const k=recentKey();
+  if(!k){ el.innerHTML=''; return; }
+  let r=JSON.parse(localStorage.getItem(k)||'[]').filter(x=>x.id!==currentProjectId);
+  if(!r.length){
+    el.innerHTML='<div style="padding:3px 14px;font-size:11px;color:var(--ink-4)">履歴なし</div>';
+    return;
+  }
+  // サーバー側で権限を確認する。見られない工事は履歴から消す。
+  const { data } = await sb.from('projects').select('id,name').in('id', r.map(x=>x.id));
+  const allowed = new Map((data||[]).map(p=>[p.id, p.name]));
+  r = r.filter(x=>allowed.has(x.id)).map(x=>({ id:x.id, name: allowed.get(x.id) }));
+  localStorage.setItem(k, JSON.stringify(r));
+
+  el.innerHTML = r.length
+    ? r.map(x=>`<button class="recent-i" onclick="openProject('${x.id}')" title="${esc(x.name||'')}">${esc(x.name||'（無題）')}</button>`).join('')
+    : '<div style="padding:3px 14px;font-size:11px;color:var(--ink-4)">履歴なし</div>';}
 
 // ══════ 分類結果の通知（AIを主役にしない） ══════
 function showClassified(n,wt){
@@ -1779,10 +4710,6 @@ function showClassified(n,wt){
   setTimeout(()=>{if(el.firstElementChild)el.innerHTML='';},9000);}
 
 // ══════ 共有URLコピー ══════
-function copyShareUrl(){
-  const url=location.origin+location.pathname+'?code='+currentShareCode;
-  navigator.clipboard.writeText(url).then(()=>toast('参加用URLをコピーしました'));}
-
 // ══════ キーボード ══════
 document.addEventListener('keydown',e=>{
   const typing=['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName);
@@ -1805,25 +4732,47 @@ if(isMobile){const d=$('#drop');d.className='drop mob';
   d.querySelector('.t').textContent='タップして撮影';
   d.querySelector('.s').textContent='カメラが起動します';}
 
-// Supabase初期化＋前回の案件を復元
+// ── v13 起動処理 ──
 (async function(){
   renderAll();
-  if(initSupabase()){
-    // URLに共有コードがあれば自動参加
-    const params=new URLSearchParams(location.search);
-    const urlCode=params.get('code');
-    if(urlCode){
-      const {data}=await sb.from('projects').select().eq('share_code',urlCode.toUpperCase()).single();
-      if(data){await openProject(data.id);return;}
-    }
-    // 前回開いた案件を復元
-    const last=localStorage.getItem('lastProject');
-    if(last){
-      const {data}=await sb.from('projects').select('id').eq('id',last).single();
-      if(data){await openProject(last);return;}
-    }
-    showProjectPicker();
+  if(!initSupabase()){
+    showGate('login');
+    gateMsg('接続情報が設定されていません。ファイル上部のURLとキーを設定してください。');
+    return;
   }
+  // 招待リンクから来た場合
+  const inviteToken = new URLSearchParams(location.search).get('invite');
+  const { data:{ session } } = await sb.auth.getSession();
+
+  if(session){
+    await afterLogin();
+  }else if(inviteToken){
+    const { data: inv } = await sb.from('project_invites')
+      .select('project_id, expires_at, used_at').eq('token', inviteToken).maybeSingle();
+    if(inv && !inv.used_at && new Date(inv.expires_at) > new Date()){
+      const { data: pj } = await sb.from('projects').select('name').eq('id', inv.project_id).maybeSingle();
+      document.getElementById('inv-project').textContent = pj?.name || 'この工事';
+      showGate('invite');
+    }else{
+      showGate('login');
+      gateMsg('招待リンクの期限が切れています。もう一度発行してもらってください。');
+    }
+  }else{
+    showGate('login');
+  }
+
+  initBoardDrag();
+
+  // ログイン状態の変化を監視
+  sb.auth.onAuthStateChange((event, session)=>{
+    if(event === 'SIGNED_OUT'){
+      clearLocalTraces(); me=null; myOrg=null; renderAll(); showGate('login');
+    }
+    // 別のアカウントに切り替わったら、前の人のデータを画面から消す
+    if(event === 'SIGNED_IN' && me && session?.user?.id !== me.id){
+      clearLocalTraces(); location.reload();
+    }
+  });
 })();
 </script>
 </body>
