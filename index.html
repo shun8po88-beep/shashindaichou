@@ -1115,10 +1115,11 @@ body.share-mode .ph-cb,body.share-mode .ph-lg,body.share-mode .ph-x{display:none
     <div class="dlg-b">
       <div class="box" style="margin-bottom:10px">
         <div class="box-t">新しい工事をつくる</div>
-        <div style="display:flex;gap:5px">
+        <div style="display:flex;gap:5px;margin-bottom:5px">
           <input id="new-proj-name" placeholder="工事名を入力" style="flex:1;height:26px;border:1px solid var(--line-2);border-radius:2px;padding:0 7px;outline:none">
           <button class="b pri" onclick="createProject()">作成</button>
         </div>
+        <input id="new-proj-site" placeholder="現場住所（任意・あとから工事情報でも入力できます）" style="width:100%;height:26px;border:1px solid var(--line-2);border-radius:2px;padding:0 7px;outline:none;box-sizing:border-box">
       </div>
       <div class="box" style="margin-bottom:12px">
         <div class="box-t">共有コードで参加</div>
@@ -1954,8 +1955,20 @@ function authErrorJa(m){
 function renderOrgBadge(){
   const el = document.getElementById('nav-org');
   if(!el) return;
-  if(!myOrg){ el.style.display = 'none'; return; }
   el.style.display = 'flex';
+  // 会社が未設定でも、ログアウトだけは必ずできるようにする（行き止まり防止）。
+  // その場で会社名を入力して作成できる入力欄も出す（prompt()に頼らない、常に見える導線）。
+  if(!myOrg){
+    el.innerHTML =
+      '<div style="min-width:0;flex:1;display:flex;gap:5px;align-items:center">' +
+        '<input id="nav-org-name" placeholder="会社名を入力して作成" style="flex:1;min-width:0;height:24px;border:1px solid var(--line-2);border-radius:2px;padding:0 6px;font-size:11.5px;outline:none" onkeydown="if(event.key===\'Enter\')createOrgFromNav()">' +
+        '<button class="b pri" style="height:24px;font-size:11px;padding:0 8px;white-space:nowrap" onclick="createOrgFromNav()">作成</button>' +
+      '</div>' +
+      '<button class="x-b" title="ログアウト" onclick="doLogout()" style="width:20px;height:20px;flex:none">' +
+        '<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2">' +
+        '<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>';
+    return;
+  }
   el.innerHTML =
     '<div class="oi">' + esc((myOrg.name||'?').slice(0,1)) + '</div>' +
     '<div style="min-width:0;flex:1">' +
@@ -1966,6 +1979,18 @@ function renderOrgBadge(){
       '<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2">' +
       '<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>';
   renderQuota();
+}
+
+// ── ナビの「会社が未設定」表示から直接会社を作る ──
+async function createOrgFromNav(){
+  const input = document.getElementById('nav-org-name');
+  const name = input?.value.trim();
+  if(!name){ toast('会社名を入力してください'); return; }
+  const created = await createOrganization(name);
+  if(!created) return; // エラーはcreateOrganization内で表示済み
+  myOrg = created; myOrg.my_role = 'owner';
+  renderOrgBadge();
+  toast('会社を登録しました');
 }
 
 // ── 使用容量 ──
@@ -2281,6 +2306,7 @@ async function flushQueue(silent){
   flushing = false;
   if(aborted && !silent) toast('通信が切れたため中断しました。残り' + (total-done) + '枚は電波が戻り次第自動で送信します');
   await refreshQueueBadge();
+  await loadPendingCards(); // 送信済みになった項目を「未送信」カードから消し、二重表示を防ぐ
   renderAll();
 
   if(ok && !silent) toast(ok + '枚を送信しました' + (ng ? '（' + ng + '枚は失敗）' : ''));
@@ -5083,11 +5109,12 @@ async function startShoot(boardId){
   if(camMode === 'app') await startCamera();
 }
 
-function stopShoot(){
+async function stopShoot(){
   stopCamera(); stopWatchPos(); pendingShot = null;
   document.getElementById('shot-preview').classList.remove('on');
   document.getElementById('shoot').classList.remove('on');
   activeBoard = null;
+  await loadPendingCards(); // 撮影中に未送信で貯まった写真を、一覧に戻った時点ですぐ反映する
   renderBoards(); renderAll();
 }
 
@@ -5298,7 +5325,7 @@ async function openProject(pid){
   phraseDict = [];
 
   const { data: pj, error } = await sb.from('projects')
-    .select('*, buildings(*)').eq('id', pid).maybeSingle();
+    .select('*').eq('id', pid).maybeSingle();
   if(error || !pj){
     toast('この工事を開く権限がありません');
     localStorage.removeItem('lastProject');
@@ -5311,7 +5338,7 @@ async function openProject(pid){
   myRole = await fetchMyRole(pid);
 
   project = {
-    name: pj.name||'', site: pj.buildings?.address||'',
+    name: pj.name||'', site: pj.site||'',
     start: pj.start_date||'', end: pj.end_date||'',
     client: pj.client||'', builder: pj.builder||'',
     rep: pj.rep||'', overview: pj.overview||'',
@@ -5459,13 +5486,14 @@ function statusJa(s){
 // ── 工事を作る ──
 async function createProject(){
   const name = document.getElementById('new-proj-name').value.trim();
+  const site = document.getElementById('new-proj-site')?.value.trim() || '';
   if(!name){ toast('工事名を入力してください'); return; }
   if(!myOrg && !(await ensureOrg())){ toast('会社が設定されていません'); return; }
 
   setConnStatus('作成中', 'sync');
   const code = await nextProjectCode();
   const { data, error } = await sb.from('projects').insert({
-    org_id: myOrg.id, code, name,
+    org_id: myOrg.id, code, name, site,
     status: 'active',
     share_code: genShareCode(),
     created_by: me.id
@@ -5543,7 +5571,7 @@ async function showProjectPicker(){
       '<div style="flex:1;min-width:0">' +
         '<div class="nm">' + esc(p.name||'（無題）') + '</div>' +
         '<div class="cd">' + esc(p.code) +
-          (p.building_name ? ' ・ ' + esc(p.building_name) : '') + '</div>' +
+          (p.site ? ' ・ ' + esc(p.site) : '') + '</div>' +
       '</div>' +
       '<span class="tg ' + (p.status==='active'?'tg-o':'tg-g') + '">' + statusJa(p.status) + '</span>' +
       '<span class="tg tg-g">' + (p.photo_count||0) + '枚</span>' +
@@ -5567,7 +5595,7 @@ async function saveProj(){
   const status = document.getElementById('p-status')?.value || currentProject.status;
 
   const { error } = await sb.from('projects').update({
-    name: project.name,
+    name: project.name, site: project.site,
     start_date: project.start || null,
     end_date: project.end || null,
     client: project.client, builder: project.builder,
@@ -6057,9 +6085,10 @@ function renderSidebar(){
 function renderStats(){
   const t=photos.length, lg=photos.filter(p=>p.inLedger).length, lk=photos.filter(p=>p.locked).length;
   const miss=templates.filter(x=>!photos.find(p=>p.wt===x.wt&&p.inLedger)).length;
+  const short=templates.filter(x=>(x.required||0)>0&&photos.filter(p=>p.wt===x.wt).length<x.required).length;
   const gps=photos.filter(p=>p.gps).length;
   const m=document.getElementById('tb-meta');
-  if(m)m.textContent=t?`${t}枚 ／ 台帳 ${lg} ／ 確定 ${lk}`+(miss?` ／ 未撮影 ${miss}工種`:''):'';
+  if(m)m.textContent=t?`${t}枚 ／ 台帳 ${lg} ／ 確定 ${lk}`+(miss?` ／ 未撮影 ${miss}工種`:'')+(short?` ／ 必要枚数不足 ${short}工種`:''):'';
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
   set('ct-photos',t);set('ct-ledger',lg);set('ct-gps',gps);set('ct-tpl',templates.length);
   const lm=document.getElementById('ledger-meta');if(lm)lm.textContent=`掲載 ${lg}枚`;
@@ -6075,7 +6104,9 @@ function renderStrip(){
   templates.forEach(t=>{
     const n=photos.filter(p=>p.wt===t.wt).length;
     const lg=photos.filter(p=>p.wt===t.wt&&p.inLedger).length;
-    h+=`<button class="chip${activeFilter===t.wt?' on':''}" onclick="setFilter('${t.wt.replace(/'/g,"\\'")}')">${!lg?'<span class="warn-d"></span>':''}${esc(t.wt)}<span class="n">${n}</span></button>`;});
+    const short=(t.required||0)>0&&n<t.required;
+    const warn=!lg?'<span class="warn-d"></span>':(short?'<span class="warn-d" title="必要枚数に届いていません"></span>':'');
+    h+=`<button class="chip${activeFilter===t.wt?' on':''}" onclick="setFilter('${t.wt.replace(/'/g,"\\'")}')">${warn}${esc(t.wt)}<span class="n">${n}</span></button>`;});
   s.innerHTML=h;
 }
 function renderFilterPills(){renderStrip();}
@@ -7137,9 +7168,11 @@ function renderTpl(){
   const g=document.getElementById('tpl-grid');if(!g)return;
   if(!templates.length){
     g.innerHTML='<div class="blank"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/></svg><p>工種が登録されていません</p><span>「標準9工種を追加」から始められます</span></div>';return;}
-  let h=`<table class="tpl-tbl"><thead><tr><th style="width:32px">#</th><th style="width:180px">工種</th><th>種別</th><th style="width:70px">撮影枚数</th><th style="width:56px"></th></tr></thead><tbody>`;
+  let h=`<table class="tpl-tbl"><thead><tr><th style="width:32px">#</th><th style="width:180px">工種</th><th>種別</th><th style="width:70px">撮影枚数</th><th style="width:78px" title="ここで設定すると、足りない工種が一覧上で分かるようになります">必要枚数</th><th style="width:56px"></th></tr></thead><tbody>`;
   templates.forEach((t,i)=>{
     const n=photos.filter(p=>p.wt===t.wt).length;
+    const req=t.required||0;
+    const short=req>0&&n<req;
     h+=`<tr>
       <td style="color:var(--ink-4);font-variant-numeric:tabular-nums">${i+1}</td>
       <td style="font-weight:500">${esc(t.wt)}</td>
@@ -7147,7 +7180,8 @@ function renderTpl(){
         const subs=(t.subs&&t.subs[k])||[];
         return `<span class="k-i" title="クリックして細別を編集" style="cursor:pointer" onclick="editSubKinds('${t.wt.replace(/'/g,"\\'")}','${k.replace(/'/g,"\\'")}')">${esc(k)}${subs.length?` <b style="font-weight:600">(${subs.length})</b>`:''}</span>`;
       }).join(''):'<span style="color:var(--ink-4);font-size:11px">種別なし</span>'}</div></td>
-      <td style="font-variant-numeric:tabular-nums">${n?`<b>${n}</b>`:'<span class="tg tg-w">0</span>'}</td>
+      <td style="font-variant-numeric:tabular-nums">${short?`<b style="color:var(--stop,#c0392b)">${n}</b>`:n?`<b>${n}</b>`:'<span class="tg tg-w">0</span>'}</td>
+      <td style="font-variant-numeric:tabular-nums;cursor:pointer" title="クリックして必要枚数を編集" onclick="editRequired('${t.wt.replace(/'/g,"\\'")}')">${req?`${req}枚${short?' <span class="tg tg-r" style="font-size:9.5px">不足</span>':''}`:'<span style="color:var(--ink-4);font-size:11px">未設定</span>'}</td>
       <td><button class="b" style="height:21px;font-size:11px" onclick="deleteTpl('${t.wt.replace(/'/g,"\\'")}')">削除</button></td>
     </tr>`;});
   g.innerHTML=h+'</tbody></table>';
@@ -7157,6 +7191,15 @@ function openAddTpl(){const wt=prompt('工種名');if(!wt)return;const kinds=pro
   if(templates.find(t=>t.wt===wt)){toast('すでに存在します');return;}
   templates.push({wt:wt.trim(),kinds:kinds.split(',').map(k=>k.trim()).filter(k=>k)});renderTpl();syncTemplates();toast('追加しました');}
 function deleteTpl(wt){if(!confirm(`「${wt}」を削除しますか？`))return;templates=templates.filter(t=>t.wt!==wt);renderTpl();syncTemplates();toast('削除しました');}
+// 撮り忘れチェック：工種ごとの必要撮影枚数を設定する（0または空欄＝チェックしない）
+function editRequired(wt){
+  const t=templates.find(x=>x.wt===wt);if(!t)return;
+  const input=prompt(`「${wt}」の必要撮影枚数（撮り忘れチェックに使います。不要なら空欄）`,t.required||'');
+  if(input==null)return;
+  const n=parseInt(input,10);
+  t.required=(input.trim()&&!isNaN(n)&&n>0)?n:0;
+  renderTpl();renderStrip();renderStats();syncTemplates();toast('必要枚数を更新しました');
+}
 // 工種・種別・細別の3階層分類：種別ごとに細別（3階層目）の選択肢を登録する
 function editSubKinds(wt, kind){
   const t = templates.find(x => x.wt === wt); if(!t) return;
